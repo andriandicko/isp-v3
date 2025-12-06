@@ -15,22 +15,20 @@ class AttendanceController extends Controller
     {
         $user = auth()->user();
 
-        // 1. CEK ROLE (Spatie)
-        // Jika Admin, lempar ke halaman rekap. Admin tidak absen via menu ini.
+        // 1. CEK ROLE
         if ($user->hasRole('admin')) {
             return redirect()->route('attendance.recap');
         }
 
-        $today = Carbon::today();
+        // Ambil Timezone dari config
+        $timezone = config('app.timezone', 'Asia/Jakarta');
+        $today = Carbon::now()->setTimezone($timezone)->startOfDay();
 
-        // 2. AMBIL SHIFT & KANTOR (Multi-Office)
-        // Menggunakan UserShift yang memiliki relasi ke Office
+        // 2. AMBIL SHIFT & KANTOR
+        // (Function ini di User.php sudah kita perbaiki agar pakai timezone config juga)
         $allowedShifts = $user->getAllowedShiftsToday();
-        
-        // Eager load 'office' dan 'shift' agar bisa diakses di Blade
         $allowedShifts->load(['office', 'shift']);
 
-        // Default tampilan kartu atas
         $userShift = $allowedShifts->first();
 
         // 3. Cek status absen hari ini
@@ -41,12 +39,11 @@ class AttendanceController extends Controller
         // 4. Cek Izin/Cuti
         $leaveToday = $user->getLeaveTypeOnDate($today);
 
-        // 5. Riwayat Absensi Bulan Ini
-        // FIX: Hapus 'shift.office' karena relasi office ada di UserShift, bukan Shift.
+        // 5. Riwayat Absensi
         $attendances = Attendance::where('user_id', $user->id)
             ->whereYear('date', $today->year)
             ->whereMonth('date', $today->month)
-            ->with(['shift']) // Cukup load shift saja
+            ->with(['shift'])
             ->orderBy('date', 'desc')
             ->paginate(10);
 
@@ -63,99 +60,8 @@ class AttendanceController extends Controller
     {
         $user = auth()->user();
 
-        // PROTEKSI: Admin dilarang absen
         if ($user->hasRole('admin')) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Admin tidak perlu melakukan absensi!'
-            ], 403);
-        }
-
-        try {
-            $request->validate([
-                'latitude'  => 'required|numeric',
-                'longitude' => 'required|numeric',
-                'photo'     => 'required|image|max:4096', // Max 4MB
-            ]);
-
-            $today = Carbon::today();
-
-            // Cek Double Checkin
-            $existingAttendance = Attendance::where('user_id', $user->id)
-                ->whereDate('date', $today)
-                ->first();
-
-            if ($existingAttendance && $existingAttendance->check_in_time) {
-                return response()->json(['success' => false, 'message' => 'Anda sudah check in hari ini!'], 400);
-            }
-
-            // --- VALIDASI LOKASI MULTI-OFFICE ---
-            $allowedShifts = $user->getAllowedShiftsToday();
-
-            if ($allowedShifts->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'Tidak ada jadwal shift hari ini!'], 400);
-            }
-
-            // Cari kantor terdekat yang valid
-            $locationCheck = $this->findNearestValidOffice($allowedShifts, $request->latitude, $request->longitude);
-
-            if (!$locationCheck['isValid']) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Anda berada di luar jangkauan! Kantor terdekat: {$locationCheck['nearestName']} (" . round($locationCheck['minDistance']) . "m)"
-                ], 400);
-            }
-
-            $matchedShift = $locationCheck['matchedShift'];
-
-            // Upload Foto
-            $photoPath = $request->file('photo')->store('attendance/check-in', 'public');
-
-            // Tentukan Status (Telat/Tepat)
-            $checkInTime = Carbon::now('Asia/Jakarta');
-            $shiftStartTime = Carbon::parse($matchedShift->shift->start_time, 'Asia/Jakarta');
-            
-            // Logika toleransi keterlambatan bisa ditambahkan di sini
-            $status = $checkInTime->format('H:i:s') > $shiftStartTime->format('H:i:s') ? 'late' : 'present';
-
-            // Simpan Data
-            $attendance = Attendance::updateOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'date' => $today,
-                ],
-                [
-                    'shift_id'           => $matchedShift->shift_id, // Kunci ke shift yang valid lokasinya
-                    'check_in_time'      => $checkInTime->format('H:i:s'),
-                    'check_in_latitude'  => $request->latitude,
-                    'check_in_longitude' => $request->longitude,
-                    'check_in_photo'     => $photoPath,
-                    'check_in_distance'  => round($locationCheck['minDistance'], 2),
-                    'status'             => $status,
-                ]
-            );
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Check in berhasil di ' . $matchedShift->office->name . '!',
-                'data'    => $attendance
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan: ' . $e->getMessage()], 500);
-        }
-    }
-
-    public function checkOut(Request $request)
-    {
-        $user = auth()->user();
-
-        // PROTEKSI: Admin dilarang absen
-        if ($user->hasRole('admin')) {
-            return response()->json([
-                'success' => false, 
-                'message' => 'Admin tidak perlu melakukan absensi!'
-            ], 403);
+            return response()->json(['success' => false, 'message' => 'Admin tidak perlu absensi!'], 403);
         }
 
         try {
@@ -165,7 +71,112 @@ class AttendanceController extends Controller
                 'photo'     => 'required|image|max:4096',
             ]);
 
-            $today = Carbon::today();
+            // Setup Timezone
+            $timezone = config('app.timezone', 'Asia/Jakarta');
+            $now = Carbon::now()->setTimezone($timezone);
+            
+            $todayDate = $now->copy()->startOfDay();
+            $yesterdayDate = $now->copy()->subDay()->startOfDay();
+            
+            // 1. AMBIL SHIFT (Cek Hari Ini & Kemarin)
+            $shiftsToday = $user->getAllowedShiftsToday($todayDate);
+            $shiftsYesterday = $user->getAllowedShiftsToday($yesterdayDate);
+
+            if ($shiftsToday->isEmpty() && $shiftsYesterday->isEmpty()) {
+                return response()->json(['success' => false, 'message' => 'Tidak ada jadwal shift aktif!'], 400);
+            }
+
+            // 2. CARI LOKASI VALID & TENTUKAN TANGGAL
+            $locationCheck = $this->findNearestValidOffice($shiftsToday, $request->latitude, $request->longitude);
+            $selectedDate = $todayDate; 
+
+            // Jika Hari Ini Gagal, Coba Shift Kemarin
+            if (!$locationCheck['isValid'] && $shiftsYesterday->isNotEmpty()) {
+                $locCheckYesterday = $this->findNearestValidOffice($shiftsYesterday, $request->latitude, $request->longitude);
+                
+                if ($locCheckYesterday['isValid']) {
+                    $locationCheck = $locCheckYesterday;
+                    $selectedDate = $yesterdayDate; 
+                }
+            }
+
+            if (!$locationCheck['isValid']) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Di luar jangkauan! Kantor: {$locationCheck['nearestName']} (" . round($locationCheck['minDistance']) . "m)"
+                ], 400);
+            }
+
+            // 3. SECURITY CHECK
+            $existingAttendance = Attendance::where('user_id', $user->id)
+                ->whereDate('date', $selectedDate)
+                ->first();
+
+            if ($existingAttendance && $existingAttendance->check_in_time) {
+                return response()->json(['success' => false, 'message' => 'Anda sudah check in untuk shift ini!'], 400);
+            }
+
+            $matchedShift = $locationCheck['matchedShift'];
+            $photoPath = $request->file('photo')->store('attendance/check-in', 'public');
+
+            // --- PERBAIKAN BUG PARSING DOUBLE DATE ---
+            // Karena start_time dicasting datetime, kita harus format paksa ke H:i:s string
+            // Agar tanggal bawaan dari model Shift TIDAK ikut tergabung
+            $jamMulai = Carbon::parse($matchedShift->shift->start_time)->format('H:i:s');
+            
+            // Gabungkan Tanggal Terpilih + Jam Mulai String
+            $shiftStartFull = Carbon::parse($selectedDate->format('Y-m-d') . ' ' . $jamMulai, $timezone);
+            
+            $status = $now->gt($shiftStartFull) ? 'late' : 'present';
+
+            // Simpan Data
+            $attendance = Attendance::updateOrCreate(
+                [
+                    'user_id' => $user->id,
+                    'date' => $selectedDate, 
+                ],
+                [
+                    'shift_id'           => $matchedShift->shift_id,
+                    'check_in_time'      => $now->format('H:i:s'),
+                    'check_in_latitude'  => $request->latitude,
+                    'check_in_longitude' => $request->longitude,
+                    'check_in_photo'     => $photoPath,
+                    'check_in_distance'  => round($locationCheck['minDistance'], 2),
+                    'status'             => $status,
+                ]
+            );
+            
+            $tglAbsenStr = $selectedDate->locale('id')->isoFormat('dddd, D MMMM Y');
+
+            return response()->json([
+                'success' => true,
+                'message' => "Check in berhasil ({$tglAbsenStr})! Status: " . ($status == 'late' ? 'Terlambat' : 'Tepat Waktu'),
+                'data'    => $attendance
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error: ' . $e->getMessage()], 500);
+        }
+    }
+
+    public function checkOut(Request $request)
+    {
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            return response()->json(['success' => false, 'message' => 'Admin tidak perlu absensi!'], 403);
+        }
+
+        try {
+            $request->validate([
+                'latitude'  => 'required|numeric',
+                'longitude' => 'required|numeric',
+                'photo'     => 'required|image|max:4096',
+            ]);
+
+            // Setup Timezone
+            $timezone = config('app.timezone', 'Asia/Jakarta');
+            $today = Carbon::now()->setTimezone($timezone)->startOfDay();
 
             $attendance = Attendance::where('user_id', $user->id)
                 ->whereDate('date', $today)
@@ -180,7 +191,6 @@ class AttendanceController extends Controller
             }
 
             // --- VALIDASI LOKASI CHECKOUT ---
-            // Cari UserShift yang sesuai dengan shift_id saat checkin
             $validUserShifts = UserShift::with('office')
                 ->where('user_id', $user->id)
                 ->where('shift_id', $attendance->shift_id)
@@ -192,30 +202,27 @@ class AttendanceController extends Controller
             if (!$locationCheck['isValid']) {
                 return response()->json([
                     'success' => false,
-                    'message' => "Anda terlalu jauh dari kantor! Terdekat: {$locationCheck['nearestName']} (" . round($locationCheck['minDistance']) . "m)"
+                    'message' => "Terlalu jauh dari kantor! Terdekat: {$locationCheck['nearestName']} (" . round($locationCheck['minDistance']) . "m)"
                 ], 400);
             }
 
-            // --- PERHITUNGAN DURASI (FIX DURASI NEGATIF) ---
+            // --- PERHITUNGAN DURASI ---
             $photoPath = $request->file('photo')->store('attendance/check-out', 'public');
             
-            // Pakai Timezone Asia/Jakarta agar konsisten
-            $now = Carbon::now('Asia/Jakarta');
+            // Waktu Sekarang (Check Out Realtime dengan Timezone Config)
+            $checkOutFull = Carbon::now()->setTimezone($timezone);
 
-            // Gabungkan Tanggal Absen + Jam Check In agar menjadi Timestamp yang utuh
+            // Re-create Timestamp CheckIn dengan Timezone Config
             $attendanceDate = Carbon::parse($attendance->date)->format('Y-m-d');
-            $checkInFull = Carbon::createFromFormat('Y-m-d H:i:s', $attendanceDate . ' ' . $attendance->check_in_time, 'Asia/Jakarta');
+            $checkInFull = Carbon::createFromFormat('Y-m-d H:i:s', $attendanceDate . ' ' . $attendance->check_in_time, $timezone);
             
-            // Waktu Check Out adalah sekarang
-            $checkOutFull = $now;
-
-            // Hitung selisih menit secara absolut
             $diffInMinutes = $checkInFull->diffInMinutes($checkOutFull);
+            
             $hours = floor($diffInMinutes / 60);
             $minutes = $diffInMinutes % 60;
 
             $attendance->update([
-                'check_out_time'      => $now->format('H:i:s'),
+                'check_out_time'      => $checkOutFull->format('H:i:s'),
                 'check_out_latitude'  => $request->latitude,
                 'check_out_longitude' => $request->longitude,
                 'check_out_photo'     => $photoPath,
@@ -237,16 +244,17 @@ class AttendanceController extends Controller
     {
         $user = auth()->user();
         
-        $month = (int) $request->get('month', now()->month);
-        $year = (int) $request->get('year', now()->year);
+        $timezone = config('app.timezone', 'Asia/Jakarta');
+        $now = Carbon::now()->setTimezone($timezone);
 
-        // Query Dasar
+        $month = (int) $request->get('month', $now->month);
+        $year = (int) $request->get('year', $now->year);
+
         $query = Attendance::with(['user', 'shift'])
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
             ->orderBy('date', 'desc');
 
-        // --- FILTER BERDASARKAN ROLE ---
         $users = [];
 
         if ($user->hasRole('admin')) {
@@ -261,18 +269,9 @@ class AttendanceController extends Controller
             $query->where('user_id', $user->id);
         }
 
-        // --- PERBAIKAN DISINI ---
-        // Ganti ->get() menjadi ->paginate(20)
-        // Angka 20 adalah jumlah data per halaman
         $attendances = $query->paginate(20); 
 
-        // Karena sekarang pakai paginate(), kita tidak bisa pakai collection method standar
-        // untuk menghitung stats secara langsung dari $attendances (karena isinya cuma 1 page).
-        // Kita buat query terpisah untuk statistik agar angkanya tetap AKURAT (Total sebulan).
-        
-        // Clone query untuk statistik (agar tidak merusak query pagination)
         $statsQuery = clone $query;
-        // Hapus limit/offset pagination dari clone (reset query ke 'ambil semua')
         $statsQuery->getQuery()->limit = null;
         $statsQuery->getQuery()->offset = null;
         $allDataForStats = $statsQuery->get();
@@ -290,7 +289,7 @@ class AttendanceController extends Controller
         return view('attendance.recap', compact('attendances', 'stats', 'month', 'year', 'users'));
     }
 
-    // --- HELPER FUNCTION UNTUK MENGHITUNG JARAK ---
+    // --- HELPER FUNCTIONS ---
     private function findNearestValidOffice($shifts, $lat, $lng)
     {
         $matchedShift = null;
@@ -300,11 +299,6 @@ class AttendanceController extends Controller
 
         foreach ($shifts as $shift) {
             $office = $shift->office;
-            
-            // Gunakan method di model Office jika ada, atau hitung manual di sini
-            // Asumsi Model Office punya method calculateDistance($lat, $lng)
-            // Jika belum ada, gunakan rumus Haversine manual:
-            
             $dist = $this->calculateHaversine($lat, $lng, $office->latitude, $office->longitude);
 
             if ($dist < $minDistance) {
@@ -312,11 +306,10 @@ class AttendanceController extends Controller
                 $nearestName = $office->name;
             }
 
-            // Cek apakah masuk radius
             if ($dist <= $office->radius) {
                 $matchedShift = $shift;
                 $isValid = true;
-                break; // Ketemu yang valid, stop loop
+                break;
             }
         }
 

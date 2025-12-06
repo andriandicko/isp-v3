@@ -23,7 +23,8 @@ class ShiftController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            // VALIDASI DIPERBAIKI: Menghapus 'after:start_time' agar support shift malam
+            'end_time' => 'required|date_format:H:i',
             'days' => 'required|array|min:1',
             'days.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
         ]);
@@ -49,7 +50,8 @@ class ShiftController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            // VALIDASI DIPERBAIKI: Menghapus 'after:start_time' agar support shift malam
+            'end_time' => 'required|date_format:H:i',
             'days' => 'required|array|min:1',
             'days.*' => 'in:monday,tuesday,wednesday,thursday,friday,saturday,sunday',
         ]);

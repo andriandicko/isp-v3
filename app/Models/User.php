@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use Carbon\Carbon;
 
 class User extends Authenticatable
 {
@@ -37,7 +38,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
      * @return array<string, string>
      */
@@ -49,6 +50,7 @@ class User extends Authenticatable
         ];
     }
 
+    // --- RELATIONSHIPS ---
 
     public function customer()
     {
@@ -59,7 +61,6 @@ class User extends Authenticatable
     {
         return $this->hasOne(Korlap::class);
     }
-
 
     public function userShifts()
     {
@@ -76,46 +77,60 @@ class User extends Authenticatable
         return $this->hasMany(Leave::class);
     }
 
+    // --- LOGIC METHODS ---
+
     public function getActiveShift($date = null)
     {
-    // Get shift aktif untuk user berdasarkan hari tertentu
-        // $date = $date ? \Carbon\Carbon::parse($date) : now();
-        // $dayName = strtolower($date->format('l')); // monday, tuesday, etc
-
-        // return $this->userShifts()
-        //     ->with(['shift', 'office'])
-        //     ->where('is_active', true)
-        //     ->whereDate('effective_date', '<=', $date)
-        //     ->whereHas('shift', function ($query) use ($dayName) {
-        //         $query->whereJsonContains('days', $dayName);
-        //     })
-        //     ->orderBy('effective_date', 'desc')
-        //     ->first();
-        
-        
+        // Mengambil shift pertama yang valid untuk hari ini
         $shifts = $this->getAllowedShiftsToday($date);
         return $shifts->first();
     }
 
     public function getAllowedShiftsToday($date = null)
     {
-        $date = $date ? \Carbon\Carbon::parse($date) : now();
-        $dayName = strtolower($date->format('l')); // monday, tuesday...
+        // 1. Ambil Timezone dari settingan aplikasi (.env)
+        // Default ke Asia/Jakarta jika config kosong
+        $appTimezone = config('app.timezone', 'Asia/Jakarta');
 
-        // Ambil semua user_shift aktif
+        // Jika $date null, pakai now(). Jika ada, parse dulu.
+        $targetDate = $date ? Carbon::parse($date) : now();
+        
+        // Set timezone sesuai konfigurasi aplikasi
+        $targetDate->setTimezone($appTimezone);
+        
+        // 2. Ambil nama hari dan PAKSA jadi huruf kecil
+        $dayName = strtolower($targetDate->format('l')); 
+
+        // 3. Ambil data UserShift dari DB
         $assignments = $this->userShifts()
             ->where('is_active', true)
-            ->whereDate('effective_date', '<=', $date)
+            ->whereDate('effective_date', '<=', $targetDate)
             ->with(['shift', 'office'])
             ->get();
 
-        // Filter manual di PHP karena kolom 'days' bentuknya JSON/Array di tabel shifts
+        // 4. Filter Logic (Normalisasi Huruf Besar/Kecil & Spasi)
         return $assignments->filter(function ($assignment) use ($dayName) {
-            return in_array($dayName, $assignment->shift->days ?? []);
+            $shift = $assignment->shift;
+
+            if (!$shift || empty($shift->days)) {
+                return false;
+            }
+
+            $rawDays = is_array($shift->days) ? $shift->days : json_decode($shift->days, true);
+            
+            if (!is_array($rawDays)) {
+                return false;
+            }
+
+            $shiftDaysNormalized = array_map(function($day) {
+                return strtolower(trim($day));
+            }, $rawDays);
+
+            return in_array($dayName, $shiftDaysNormalized);
         });
     }
 
-    // Get semua shift aktif untuk user
+    // Get semua shift aktif untuk user (tanpa filter hari)
     public function getActiveShifts()
     {
         return $this->userShifts()

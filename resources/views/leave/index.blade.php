@@ -27,6 +27,7 @@
                                 @endif
                             </a>
                         @endrole
+                        @unlessrole('admin|super_admin')
                         <a href="{{ route('leave.create') }}"
                             class="inline-flex items-center justify-center px-5 py-2.5 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-sm transition-all duration-200">
                             <svg class="w-5 h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor"
@@ -35,6 +36,7 @@
                             </svg>
                             <span>Ajukan Baru</span>
                         </a>
+                        @endunlessrole
                     </div>
                 </div>
             </div>

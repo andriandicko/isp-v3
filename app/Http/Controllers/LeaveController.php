@@ -11,14 +11,19 @@ use Illuminate\Http\Request;
 class LeaveController extends Controller
 {
     public function index()
-    {
-        $leaves = Leave::where('user_id', auth()->id())
-            ->with('approver')
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        return view('leave.index', compact('leaves'));
+{
+    // Redirect Admin tetap perlu agar UX nya bagus (langsung ke dashboard manage)
+    if (auth()->user()->hasRole('admin')) {
+        return redirect()->route('leave.admin.index');
     }
+
+    $leaves = Leave::where('user_id', auth()->id())
+        ->with('approver')
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
+
+    return view('leave.index', compact('leaves'));
+}
 
     public function create()
     {

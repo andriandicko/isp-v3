@@ -9,13 +9,6 @@ use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
-    // Pastikan hanya admin yang bisa akses controller ini
-    public function __construct()
-    {
-        // $this->middleware('permission:role.view|role.create|role.edit|role.delete');
-        // Atau handle di route/middleware lain
-    }
-
     public function index()
     {
         $roles = Role::with('permissions')->get();
@@ -24,13 +17,15 @@ class RoleController extends Controller
 
     public function create()
     {
-        // Mengelompokkan permission berdasarkan nama depan (misal: 'attendance.index' jadi grup 'attendance')
-        // Ini agar tampilan checkbox rapi per modul
+        // Group permissions berdasarkan nama depan (users.index -> users)
         $permissions = Permission::all()->groupBy(function($perm) {
             return explode('.', $perm->name)[0]; 
         });
         
-        return view('roles.create', compact('permissions'));
+        // Panggil daftar nama modul bahasa Indonesia
+        $moduleNames = $this->getModuleNames();
+        
+        return view('roles.create', compact('permissions', 'moduleNames'));
     }
 
     public function store(Request $request)
@@ -57,7 +52,6 @@ class RoleController extends Controller
     {
         $role = Role::findOrFail($id);
         
-        // Jangan biarkan edit super-admin jika hardcoded
         if($role->name === 'super-admin') {
             // return back()->with('error', 'Role Super Admin tidak bisa diedit.');
         }
@@ -66,10 +60,12 @@ class RoleController extends Controller
             return explode('.', $perm->name)[0]; 
         });
         
-        // Ambil ID permission yang sudah dimiliki role ini
         $rolePermissions = $role->permissions->pluck('name')->toArray();
 
-        return view('roles.edit', compact('role', 'permissions', 'rolePermissions'));
+        // Panggil daftar nama modul bahasa Indonesia
+        $moduleNames = $this->getModuleNames();
+
+        return view('roles.edit', compact('role', 'permissions', 'rolePermissions', 'moduleNames'));
     }
 
     public function update(Request $request, $id)
@@ -85,7 +81,6 @@ class RoleController extends Controller
             $role->name = $request->name;
             $role->save();
 
-            // Update hak akses
             $role->syncPermissions($request->permissions ?? []);
             
             DB::commit();
@@ -99,11 +94,53 @@ class RoleController extends Controller
     public function destroy($id)
     {
         $role = Role::findOrFail($id);
-        if($role->name === 'super-admin') { // Proteksi role vital
+        if($role->name === 'super-admin') {
             return back()->with('error', 'Role Super Admin tidak bisa dihapus.');
         }
         
         $role->delete();
         return redirect()->route('roles.index')->with('success', 'Role berhasil dihapus.');
+    }
+
+    /**
+     * PRIVATE HELPER: Daftar Terjemahan Modul
+     * Ubah di sini, otomatis berubah di Create & Edit
+     */
+    private function getModuleNames()
+    {
+        return [
+            // System & Users
+            'dashboard'         => 'Dashboard Utama',
+            'users'             => 'Manajemen Pengguna',
+            'roles'             => 'Role & Hak Akses',
+            
+            // Operasional ISP
+            'coverage_areas'    => 'Area Jangkauan (Coverage)',
+            'packages'          => 'Paket Internet',
+            'offices'           => 'Kantor Cabang',
+            'shifts'            => 'Master Shift Kerja',
+            'user-shifts'       => 'Jadwal Shift Pegawai',
+            'korlaps'           => 'Data Korlap',
+            
+            // Pelanggan & Billing
+            'customers'         => 'Data Pelanggan',
+            'tickets'           => 'Tiket & Support',
+            'billings'          => 'Tagihan Pelanggan',
+            'payments'          => 'Riwayat Pembayaran',
+            
+            // Gudang (Inventory)
+            'warehouse'         => 'Gudang (General)',
+            'item-category'     => 'Kategori Barang',
+            'item'              => 'Data Barang',
+            'supplier'          => 'Data Supplier',
+            'incoming-goods'    => 'Barang Masuk',
+            'outgoing-goods'    => 'Barang Keluar',
+            'warehouse-transfer'=> 'Mutasi / Transfer Barang',
+            'stock-report'      => 'Laporan Stok',
+            
+            // HR & Absensi
+            'attendance'        => 'Absensi Pegawai',
+            'leave'             => 'Pengajuan Cuti',
+        ];
     }
 }

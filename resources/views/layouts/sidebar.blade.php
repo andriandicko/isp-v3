@@ -76,19 +76,19 @@
                 @endcan
                 
                 @can('leave.index')
-                    <a href="{{ route('leave.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('leave.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Izin/Sakit</a>
+                    <a href="{{ route('leave.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('leave.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Izin/Sakit/Dinas</a>
                 @endcan
                 
                 @can('shifts.index')
-                    <a href="{{ route('shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Shift</a>
+                    <a href="{{ route('shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Shift</a>
                 @endcan
 
                 @can('user-shifts.index')
-                    <a href="{{ route('user-shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('user-shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Jadwal User</a>
+                    <a href="{{ route('user-shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('user-shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Jadwal Karyawan</a>
                 @endcan
 
                 @can('offices.index')
-                    <a href="{{ route('offices.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('offices.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Office</a>
+                    <a href="{{ route('offices.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('offices.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Office</a>
                 @endcan
             </div>
         </div>
@@ -150,7 +150,7 @@
             </button>
             <div x-show="open" x-collapse class="ml-4 space-y-1">
                 @can('warehouse.index')
-                <a href="{{ route('warehouse.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('warehouse.index') ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Warehouse</a>
+                <a href="{{ route('warehouse.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('warehouse.index') ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Gudang</a>
                 @endcan
 
                 @can('item-category.index')
@@ -158,11 +158,11 @@
                 @endcan
 
                 @can('item.index')
-                 <a href="{{ route('item.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('item.index') ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Barang</a>
+                 <a href="{{ route('item.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('item.index') ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Barang</a>
                 @endcan
 
                 @can('supplier.index')
-                 <a href="{{ route('supplier.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('supplier.index') ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Supplier</a>
+                 <a href="{{ route('supplier.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('supplier.index') ? 'bg-orange-100 text-orange-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Supplier</a>
                 @endcan
 
                 @can('incoming-goods.index')
@@ -197,7 +197,7 @@
             </button>
             <div x-show="open" x-collapse class="ml-4 space-y-1">
                 @can('packages.index')
-                <a href="{{ route('packages.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('packages.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Paket</a>
+                <a href="{{ route('packages.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('packages.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Paket Internet</a>
                 @endcan
 
                 @can('users.index')
@@ -205,17 +205,17 @@
                 @endcan
 
                 @can('coverage_areas.index')
-                <a href="{{ route('coverage_areas.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('coverage_areas.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Coverage</a>
+                <a href="{{ route('coverage_areas.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('coverage_areas.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Area Tercover</a>
                 @endcan
 
                 @can('korlaps.index')
-                <a href="{{ route('korlaps.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('korlaps.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Korlap</a>
+                <a href="{{ route('korlaps.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('korlaps.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Korlap</a>
                 @endcan
 
                 {{-- FITUR BARU: MANAJEMEN ROLE --}}
                 @can('roles.index')
                 <a href="{{ route('roles.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('roles.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">
-                    <span class="flex-1">Role & Akses</span>
+                    <span class="flex-1">Manage Role & Akses</span>
                     <span class="px-2 py-0.5 text-[10px] bg-red-100 text-red-700 rounded-full font-bold">New</span>
                 </a>
                 @endcan
@@ -237,8 +237,8 @@
         </button>
 
         <div class="flex justify-between items-center mt-3 px-1">
-            <p class="text-[10px] text-slate-400">v2.1.0</p>
-            <span class="text-[10px] text-slate-300">&copy; {{ date('Y') }} SPD-Link</span>
+            <p class="text-[10px] text-slate-800">v3.1.0</p>
+            <span class="text-[10px] text-slate-800">&copy; {{ date('Y') }} SPD-Link</span>
         </div>
 
         <template x-teleport="body">

@@ -171,24 +171,29 @@ Route::middleware('auth')->group(function () {
 
     // === IZIN / CUTI (LEAVE) ===
     Route::prefix('leave')->name('leave.')->middleware('can:leave.index')->group(function () {
+        
+        // 1. Index (Halaman Utama)
         Route::get('/', [LeaveController::class, 'index'])->name('index');
-        
-        // Buat Izin Baru
-        Route::get('/create', [LeaveController::class, 'create'])
-            ->name('create')
-            ->middleware('can:leave.create');
-        Route::post('/', [LeaveController::class, 'store'])
-            ->name('store')
-            ->middleware('can:leave.create');
-            
-        Route::get('/{leave}', [LeaveController::class, 'show'])->name('show');
-        Route::delete('/{leave}', [LeaveController::class, 'destroy'])->name('destroy');
-        
-        // Approval Izin (Admin/HRD)
+
+        // 2. Admin List & Approval (TARUH DI ATAS WILDCARD)
+        // Kita taruh ini sebelum '/{leave}' supaya URL 'leave/admin/list' tidak dianggap sebagai ID izin
         Route::middleware(['can:leave.approve'])->group(function () {
             Route::get('/admin/list', [LeaveController::class, 'adminIndex'])->name('admin.index');
             Route::post('/{leave}/approve', [LeaveController::class, 'approve'])->name('approve');
         });
+        
+        // 3. Create & Store
+        Route::get('/create', [LeaveController::class, 'create'])
+            ->name('create')
+            ->middleware('can:leave.create');
+            
+        Route::post('/', [LeaveController::class, 'store'])
+            ->name('store')
+            ->middleware('can:leave.create');
+            
+        // 4. Wildcard Routes (Show, Destroy, dll) -> WAJIB PALING BAWAH
+        // Route ini menangkap apapun setelah slash (misal: leave/1, leave/uuid-ini)
+        Route::get('/{leave}', [LeaveController::class, 'show'])->name('show');
+        Route::delete('/{leave}', [LeaveController::class, 'destroy'])->name('destroy');
     });
-
 });
