@@ -64,6 +64,7 @@
 
                 <div class="lg:col-span-2 space-y-6">
 
+                    <!-- RINCIAN KEUANGAN -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
                             <h2 class="font-semibold text-gray-800 flex items-center">
@@ -85,7 +86,14 @@
                                 </div>
                                 <div class="text-right">
                                     <p class="text-sm text-gray-500 mb-1">Paket Internet</p>
-                                    <p class="font-semibold text-blue-600">{{ $billing->package->name }}</p>
+                                    
+                                    {{-- PERBAIKAN: Tampilkan nama paket ATAU notes jika custom --}}
+                                    <p class="font-semibold text-blue-600">
+                                        {{ $billing->package ? $billing->package->name : ($billing->notes ?? 'Custom Package') }}
+                                    </p>
+                                    @if(!$billing->package)
+                                        <p class="text-xs text-gray-400 mt-1">(Custom Price)</p>
+                                    @endif
                                 </div>
                             </div>
 
@@ -139,8 +147,17 @@
                                 </div>
                             </div>
                         @endif
+                        
+                        {{-- Tampilkan catatan jika paket custom/belum lunas tapi ada notes --}}
+                        @if ($billing->notes && $billing->status != 'paid')
+                            <div class="bg-yellow-50 px-6 py-4 border-t border-yellow-100">
+                                <h3 class="text-sm font-bold text-yellow-800 mb-2 uppercase">Deskripsi Paket / Catatan</h3>
+                                <p class="text-sm text-gray-700 italic">"{{ $billing->notes }}"</p>
+                            </div>
+                        @endif
                     </div>
 
+                    <!-- DATA PELANGGAN -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
                             <h2 class="font-semibold text-gray-800 flex items-center">
@@ -192,6 +209,7 @@
                         </div>
                     </div>
 
+                    <!-- DOKUMENTASI (FOTO) - DIKEMBALIKAN -->
                     <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                         <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
                             <h2 class="font-semibold text-gray-800 flex items-center">
@@ -308,7 +326,10 @@
                             <div>
                                 <label class="block text-xs text-gray-400 uppercase tracking-wider mb-1">Area
                                     Coverage</label>
-                                <p class="text-gray-800 font-medium">{{ $billing->coverageArea->name }}</p>
+                                {{-- PERBAIKAN: Handle null coverage area --}}
+                                <p class="text-gray-800 font-medium">
+                                    {{ $billing->coverageArea->name ?? 'Business (Non-Coverage)' }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -317,7 +338,7 @@
             </div>
         </div>
     </div>
-
+    
     <div id="imageModal"
         class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
         onclick="closeImageModal()">

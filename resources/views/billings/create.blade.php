@@ -32,8 +32,10 @@
                             @foreach ($customers as $customer)
                                 <option value="{{ $customer->id }}"
                                     {{ old('customer_id') == $customer->id ? 'selected' : '' }}
-                                    data-name="{{ $customer->user->name }}" data-address="{{ $customer->address }}"
+                                    data-name="{{ $customer->user->name }}" 
+                                    data-address="{{ $customer->address }}"
                                     data-phone="{{ $customer->user->phone ?? '-' }}"
+                                    data-type="{{ $customer->type }}" 
                                     data-coverage-area-id="{{ $customer->coverage_area_id }}"
                                     data-coverage-area-name="{{ $customer->coverageArea->name ?? '-' }}">
                                     {{ $customer->user->name }}
@@ -58,8 +60,8 @@
                                 <p class="font-medium" id="info-address">-</p>
                             </div>
                             <div>
-                                <span class="text-gray-600">Telepon:</span>
-                                <p class="font-medium" id="info-phone">-</p>
+                                <span class="text-gray-600">Tipe Layanan:</span>
+                                <p class="font-medium uppercase" id="info-type">-</p>
                             </div>
                         </div>
                     </div>
@@ -69,9 +71,15 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">
                             Paket Internet <span class="text-red-500">*</span>
                         </label>
-                        <select name="package_id" id="package_id" required
+                        <select name="package_id" id="package_id"
                             class="w-full px-4 py-2 border rounded-lg @error('package_id') border-red-500 @enderror">
                             <option value="">Pilih Paket</option>
+                            
+                            {{-- OPSI CUSTOM MANUAL --}}
+                            <option value="custom" class="font-bold text-blue-600" {{ old('package_id') == 'custom' ? 'selected' : '' }}>
+                                + Input Manual / Custom (Harga Bebas)
+                            </option>
+
                             @foreach ($packages as $package)
                                 <option value="{{ $package->id }}"
                                     {{ old('package_id') == $package->id ? 'selected' : '' }}
@@ -85,10 +93,10 @@
                         @enderror
                     </div>
 
-                    <!-- Coverage Area - HIDDEN INPUT & DISPLAY ONLY -->
+                    <!-- Coverage Area -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Area Coverage <span class="text-red-500">*</span>
+                            Area Coverage
                         </label>
                         <input type="hidden" name="coverage_area_id" id="coverage_area_id"
                             value="{{ old('coverage_area_id') }}">
@@ -96,7 +104,6 @@
                             id="coverage-area-display">
                             Pilih customer terlebih dahulu
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Area coverage otomatis dari data customer</p>
                         @error('coverage_area_id')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
@@ -105,7 +112,7 @@
                     <!-- Tanggal Pemasangan -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Tanggal Pemasangan <span class="text-red-500">*</span>
+                            Tanggal Tagihan <span class="text-red-500">*</span>
                         </label>
                         <input type="date" name="billing_date" value="{{ old('billing_date', date('Y-m-d')) }}" required
                             class="w-full px-4 py-2 border rounded-lg @error('billing_date') border-red-500 @enderror">
@@ -114,90 +121,30 @@
                         @enderror
                     </div>
 
-                    <!-- Amount - READONLY -->
+                    <!-- Amount & Notes -->
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Harga (Rp) <span class="text-red-500">*</span>
+                            Harga Tagihan (Rp) <span class="text-red-500">*</span>
                         </label>
                         <input type="number" name="amount" id="amount" value="{{ old('amount') }}" required
                             min="0" readonly
                             class="w-full px-4 py-2 border rounded-lg bg-gray-100 cursor-not-allowed @error('amount') border-red-500 @enderror"
-                            placeholder="Pilih paket untuk melihat harga">
-                        <p class="text-xs text-gray-500 mt-1">Harga otomatis dari paket yang dipilih</p>
+                            placeholder="Pilih paket terlebih dahulu">
+                        
+                        {{-- Input Tambahan: Catatan Paket Custom --}}
+                        <div id="custom-notes-wrapper" class="hidden mt-2">
+                            <label class="text-xs text-gray-600 block mb-1">Nama Paket Custom / Catatan <span class="text-red-500">*</span>:</label>
+                            <input type="text" name="notes" id="notes" class="w-full px-3 py-1.5 border rounded text-sm" 
+                                placeholder="Contoh: Paket Corporate Dedicated 50Mbps"
+                                value="{{ old('notes') }}">
+                        </div>
+
                         @error('amount')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
-                    </div>
-
-                    <!-- No ODP -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            No ODP
-                        </label>
-                        <input type="text" name="no_odp" value="{{ old('no_odp') }}"
-                            class="w-full px-4 py-2 border rounded-lg @error('no_odp') border-red-500 @enderror"
-                            placeholder="Masukkan No ODP">
-                        @error('no_odp')
+                        @error('notes')
                             <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                         @enderror
-                    </div>
-
-                    <!-- MAC ONT -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            MAC ONT
-                        </label>
-                        <input type="text" name="mac_ont" value="{{ old('mac_ont') }}"
-                            class="w-full px-4 py-2 border rounded-lg @error('mac_ont') border-red-500 @enderror"
-                            placeholder="Masukkan MAC ONT">
-                        @error('mac_ont')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Foto KTP -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Foto KTP
-                        </label>
-                        <input type="file" name="foto_ktp" accept="image/*"
-                            class="w-full px-4 py-2 border rounded-lg @error('foto_ktp') border-red-500 @enderror"
-                            onchange="previewImage(this, 'preview-ktp')">
-                        <p class="text-xs text-gray-500 mt-1">Format: JPEG, PNG, JPG (Max: 2MB)</p>
-                        @error('foto_ktp')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                        <img id="preview-ktp" class="mt-2 max-w-xs rounded hidden">
-                    </div>
-
-                    <!-- Foto Rumah -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Foto Rumah
-                        </label>
-                        <input type="file" name="foto_rumah" accept="image/*"
-                            class="w-full px-4 py-2 border rounded-lg @error('foto_rumah') border-red-500 @enderror"
-                            onchange="previewImage(this, 'preview-rumah')">
-                        <p class="text-xs text-gray-500 mt-1">Format: JPEG, PNG, JPG (Max: 2MB)</p>
-                        @error('foto_rumah')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                        <img id="preview-rumah" class="mt-2 max-w-xs rounded hidden">
-                    </div>
-
-                    <!-- Foto Redaman -->
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Foto Redaman
-                        </label>
-                        <input type="file" name="foto_redaman" accept="image/*"
-                            class="w-full px-4 py-2 border rounded-lg @error('foto_redaman') border-red-500 @enderror"
-                            onchange="previewImage(this, 'preview-redaman')">
-                        <p class="text-xs text-gray-500 mt-1">Format: JPEG, PNG, JPG (Max: 2MB)</p>
-                        @error('foto_redaman')
-                            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                        <img id="preview-redaman" class="mt-2 max-w-xs rounded hidden">
                     </div>
                 </div>
 
@@ -215,16 +162,43 @@
     </div>
 
     <script>
-        // Auto-fill amount from package
+        // Logic Paket: Custom vs Otomatis
         document.getElementById('package_id').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const price = selectedOption.dataset.price;
-            if (price) {
-                document.getElementById('amount').value = price;
+            const selectedValue = this.value;
+            const amountInput = document.getElementById('amount');
+            const notesWrapper = document.getElementById('custom-notes-wrapper');
+            const notesInput = document.getElementById('notes');
+
+            if (selectedValue === 'custom') {
+                // Mode Custom: Buka kunci input harga
+                amountInput.readOnly = false;
+                amountInput.value = '';
+                amountInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                amountInput.classList.add('bg-white');
+                amountInput.placeholder = 'Masukkan harga manual';
+                amountInput.focus();
+                
+                // Tampilkan input catatan & wajib diisi
+                notesWrapper.classList.remove('hidden');
+                notesInput.required = true;
+            } else {
+                // Mode Paket Biasa: Kunci input harga & isi otomatis
+                const selectedOption = this.options[this.selectedIndex];
+                const price = selectedOption.dataset.price;
+                
+                amountInput.readOnly = true;
+                amountInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                amountInput.classList.remove('bg-white');
+                notesWrapper.classList.add('hidden');
+                notesInput.required = false;
+
+                if (price) {
+                    amountInput.value = price;
+                }
             }
         });
 
-        // Show customer info & auto-fill coverage area
+        // Logic Customer Info & Coverage
         document.getElementById('customer_id').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const customerInfo = document.getElementById('customer-info');
@@ -232,47 +206,38 @@
             const coverageAreaId = document.getElementById('coverage_area_id');
 
             if (this.value) {
-                // Show customer info
+                // Isi Info Customer
                 document.getElementById('info-name').textContent = selectedOption.dataset.name || '-';
                 document.getElementById('info-address').textContent = selectedOption.dataset.address || '-';
-                document.getElementById('info-phone').textContent = selectedOption.dataset.phone || '-';
+                document.getElementById('info-type').textContent = selectedOption.dataset.type || '-';
                 customerInfo.classList.remove('hidden');
 
-                // Auto-fill coverage area
+                // Logic Coverage Area
                 const coverageId = selectedOption.dataset.coverageAreaId;
                 const coverageName = selectedOption.dataset.coverageAreaName;
+                const type = selectedOption.dataset.type; 
 
                 if (coverageId && coverageName && coverageName !== '-') {
                     coverageAreaId.value = coverageId;
                     coverageAreaDisplay.textContent = coverageName;
-                    coverageAreaDisplay.classList.remove('text-red-500');
-                    coverageAreaDisplay.classList.add('text-gray-700');
+                    coverageAreaDisplay.className = 'w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-700';
                 } else {
-                    coverageAreaId.value = '';
-                    coverageAreaDisplay.textContent = '⚠️ Customer tidak memiliki area coverage';
-                    coverageAreaDisplay.classList.add('text-red-500');
-                    coverageAreaDisplay.classList.remove('text-gray-700');
+                    if (type === 'business') {
+                        coverageAreaId.value = '';
+                        coverageAreaDisplay.textContent = '🏢 Business Account (Non-Coverage Area)';
+                        coverageAreaDisplay.className = 'w-full px-4 py-2 border rounded-lg bg-blue-50 text-blue-700 border-blue-200';
+                    } else {
+                        coverageAreaId.value = '';
+                        coverageAreaDisplay.textContent = '⚠️ Error: Customer Residential wajib punya area coverage!';
+                        coverageAreaDisplay.className = 'w-full px-4 py-2 border rounded-lg bg-red-50 text-red-700 border-red-200';
+                    }
                 }
             } else {
                 customerInfo.classList.add('hidden');
                 coverageAreaId.value = '';
                 coverageAreaDisplay.textContent = 'Pilih customer terlebih dahulu';
-                coverageAreaDisplay.classList.remove('text-red-500');
-                coverageAreaDisplay.classList.add('text-gray-700');
+                coverageAreaDisplay.className = 'w-full px-4 py-2 border rounded-lg bg-gray-100 text-gray-700';
             }
         });
-
-        // Preview image
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
     </script>
 @endsection

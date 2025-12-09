@@ -8,12 +8,10 @@
     
     <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 bg-white shrink-0">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 p-1.5 rounded-lg shadow-sm flex-shrink-0">
-                <img src="/logo.png" alt="SPD" class="w-6 h-6 object-contain invert brightness-0" 
-                      onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <svg class="w-6 h-6 text-white hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
+            <div class="flex-shrink-0">
+                <img src="{{ asset('Logo-SPDLINK.png') }}" 
+                     alt="SPD Logo" 
+                     class="h-8 w-auto object-contain">
             </div>
             <span class="text-xl font-bold text-slate-800 tracking-tight whitespace-nowrap">{{ config('app.name') }}</span>
         </div>
@@ -83,12 +81,12 @@
                     <a href="{{ route('shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Shift</a>
                 @endcan
 
-                @can('user-shifts.index')
-                    <a href="{{ route('user-shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('user-shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Jadwal Karyawan</a>
-                @endcan
-
                 @can('offices.index')
                     <a href="{{ route('offices.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('offices.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Office</a>
+                @endcan
+                
+                @can('user-shifts.index')
+                    <a href="{{ route('user-shifts.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('user-shifts.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Jadwal Karyawan</a>
                 @endcan
             </div>
         </div>
@@ -105,16 +103,16 @@
                 <svg class="w-4 h-4 transition-transform duration-300" :class="open ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
             </button>
             <div x-show="open" x-collapse class="ml-4 space-y-1">
+                @can('customers.index')
+                <a href="{{ route('customers.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('customers.*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Pelanggan</a>
+                @endcan
+
                 @can('billings.index')
                 <a href="{{ route('billings.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('billings.*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Tagihan</a>
                 @endcan
 
                 @can('tickets.index')
                 <a href="{{ route('tickets.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('tickets.*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Tiket Support</a>
-                @endcan
-
-                @can('customers.index')
-                <a href="{{ route('customers.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('customers.*') ? 'bg-blue-100 text-blue-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Pelanggan</a>
                 @endcan
             </div>
         </div>
@@ -201,7 +199,7 @@
                 @endcan
 
                 @can('users.index')
-                <a href="{{ route('users.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('users.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">User</a>
+                <a href="{{ route('users.index') }}" class="flex items-center px-3 py-2 text-sm rounded-lg transition-all {{ request()->routeIs('users.*') ? 'bg-purple-100 text-purple-700 font-semibold' : 'text-slate-600 hover:bg-slate-50' }}">Manage Pengguna</a>
                 @endcan
 
                 @can('coverage_areas.index')

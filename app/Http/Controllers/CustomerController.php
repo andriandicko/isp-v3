@@ -27,11 +27,11 @@ class CustomerController extends Controller
                 })
                     ->orWhere('company_name', 'like', "%{$search}%")
                     ->orWhere('contact_person', 'like', "%{$search}%")
-                    ->orWhere('no_odp', 'like', "%{$search}%"); // Bisa cari berdasarkan ODP juga
+                    ->orWhere('no_odp', 'like', "%{$search}%");
             });
         }
 
-        // 2. Filter Status (PENTING)
+        // 2. Filter Status
         if ($request->has('status') && $request->status != '') {
             $query->where('status', $request->status);
         }
@@ -44,7 +44,8 @@ class CustomerController extends Controller
     public function create()
     {
         $users = User::all();
-        $coverageAreas = CoverageArea::all();
+        // Pastikan dropdown manual juga tidak memuat data sampah
+        $coverageAreas = CoverageArea::whereNull('deleted_at')->get(); 
         $korlaps = Korlap::all();
 
         return view('customers.create', compact('users', 'coverageAreas', 'korlaps'));
@@ -52,7 +53,17 @@ class CustomerController extends Controller
 
     public function store(StoreCustomerRequest $request)
     {
-        $validated = $request->validated(); // Gunakan validated()
+        $validated = $request->validated();
+
+        // Pastikan jika coverage_area_id tidak ada di request (karena disabled), set jadi null secara eksplisit
+        if (!array_key_exists('coverage_area_id', $validated)) {
+            $validated['coverage_area_id'] = null;
+        }
+        
+        // Logika korlap null jika area tidak ada
+        if (empty($validated['coverage_area_id'])) {
+             $validated['korlap_id'] = null;
+        }
 
         try {
             DB::beginTransaction();
@@ -96,7 +107,7 @@ class CustomerController extends Controller
 
     public function update(UpdateCustomerRequest $request, Customer $customer)
     {
-        $validated = $request->validated(); // Gunakan validated() agar data aman
+        $validated = $request->validated();
 
         try {
             DB::beginTransaction();
@@ -164,10 +175,17 @@ class CustomerController extends Controller
             $area = DB::table('coverage_areas')
                 ->select('id', 'name')
                 ->whereNotNull('boundary')
+                
+                // --- PERBAIKAN UTAMA DISINI ---
+                // Tambahkan filter ini agar data Soft Delete tidak ikut terpanggil
+                ->whereNull('deleted_at') 
+                // ------------------------------
+
                 ->whereRaw("ST_Contains(boundary, ST_GeomFromText(?))", [$pointWKT])
                 ->first();
 
             if ($area) {
+                // Untuk Korlap, kita pakai Eloquent jadi aman (soft delete otomatis terfilter)
                 $korlap = Korlap::where('coverage_area_id', $area->id)->with('user')->first();
 
                 return response()->json([
@@ -188,7 +206,6 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             Log::error("Check Coverage Error: " . $e->getMessage());
             
-            // Tampilkan pesan error yang lebih spesifik untuk debugging
             return response()->json([
                 'error' => true, 
                 'message' => 'Gagal cek lokasi: ' . $e->getMessage()

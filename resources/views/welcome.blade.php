@@ -39,7 +39,7 @@
                 {{-- Logo --}}
                 <div class="flex items-center gap-2">
                     <img src="{{ asset('Logo-SPDLINK.png') }}" alt="Logo SPDLINK" class="h-10 w-auto rounded-md shadow-sm bg-white">
-                    <span class="text-xl font-bold tracking-tight" :class="scrolled ? 'text-slate-900' : 'text-slate-900 lg:text-white'">SPDLINK</span>
+                    <span class="text-xl font-bold tracking-tight" :class="scrolled ? 'text-slate-900' : 'text-slate-900 text-white'">SPDLINK</span>
                 </div>
 
                 {{-- Desktop Menu --}}
@@ -64,7 +64,7 @@
                 </div>
 
                 {{-- Mobile Menu Button --}}
-                <button @click="mobileMenu = !mobileMenu" class="lg:hidden p-2 rounded-md focus:outline-none" :class="scrolled ? 'text-slate-900' : 'text-slate-900 lg:text-white'">
+                <button @click="mobileMenu = !mobileMenu" class="lg:hidden p-2 rounded-md focus:outline-none" :class="scrolled ? 'text-slate-900' : 'text-slate-900 text-white'">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>

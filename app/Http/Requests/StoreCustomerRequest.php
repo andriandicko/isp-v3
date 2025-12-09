@@ -22,7 +22,7 @@ class StoreCustomerRequest extends FormRequest
             'contact_person' => 'nullable|string|max:255',
 
             // --- LOKASI ---
-            'coverage_area_id' => 'required|exists:coverage_areas,id',
+            'coverage_area_id' => 'nullable|required_if:type,residential|exists:coverage_areas,id',
             'address' => 'nullable|string',
             'lat' => 'required|numeric|between:-90,90',
             'lng' => 'required|numeric|between:-180,180',

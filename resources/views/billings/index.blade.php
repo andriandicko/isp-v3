@@ -22,18 +22,7 @@
                     </button>
                 </form>
 
-                <form action="{{ route('billings.generate-bulk') }}" method="POST"
-                    onsubmit="return confirm('Generate tagihan untuk semua pelanggan AKTIF bulan ini?')">
-                    @csrf
-                    <button type="submit"
-                        class="inline-flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg font-medium transition-colors text-sm">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                        </svg>
-                        Generate Massal
-                    </button>
-                </form>
+                {{-- TOMBOL GENERATE MASSAL DIHAPUS --}}
 
                 <a href="{{ route('billings.create') }}"
                     class="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium shadow-sm transition-colors text-sm">
@@ -46,44 +35,18 @@
         </div>
 
         @if (session('success'))
-            <div
-                class="bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded-r mb-4 shadow-sm animate-fade-in-down">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span class="font-medium">{{ session('success') }}</span>
-                </div>
+            <div class="bg-green-50 border-l-4 border-green-500 text-green-800 px-4 py-3 rounded-r mb-4 shadow-sm">
+                {{ session('success') }}
             </div>
         @endif
-
         @if (session('error'))
-            <div
-                class="bg-red-50 border-l-4 border-red-500 text-red-800 px-4 py-3 rounded-r mb-4 shadow-sm animate-fade-in-down">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span class="font-medium">{{ session('error') }}</span>
-                </div>
+            <div class="bg-red-50 border-l-4 border-red-500 text-red-800 px-4 py-3 rounded-r mb-4 shadow-sm">
+                {{ session('error') }}
             </div>
         @endif
-
         @if (session('info'))
-            <div
-                class="bg-blue-50 border-l-4 border-blue-500 text-blue-800 px-4 py-3 rounded-r mb-4 shadow-sm animate-fade-in-down">
-                <div class="flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd"
-                            d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
-                            clip-rule="evenodd" />
-                    </svg>
-                    <span class="font-medium">{{ session('info') }}</span>
-                </div>
+            <div class="bg-blue-50 border-l-4 border-blue-500 text-blue-800 px-4 py-3 rounded-r mb-4 shadow-sm">
+                {{ session('info') }}
             </div>
         @endif
 
@@ -139,7 +102,7 @@
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                 Customer</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                                Periode</th>
+                                Paket / Layanan</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                                 Jatuh Tempo</th>
                             <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -155,63 +118,36 @@
                             <tr class="hover:bg-gray-50 transition-colors">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex flex-col">
-                                        <span
-                                            class="font-mono text-sm font-bold text-blue-600">{{ $billing->billing_code }}</span>
-                                        <span
-                                            class="text-xs text-gray-500">{{ $billing->created_at->format('d M Y H:i') }}</span>
+                                        <span class="font-mono text-sm font-bold text-blue-600">{{ $billing->billing_code }}</span>
+                                        <span class="text-xs text-gray-500">{{ $billing->created_at->format('d M Y H:i') }}</span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center">
-                                        <div>
-                                            <div class="text-sm font-medium text-gray-900">
-                                                {{ optional($billing->customer)->company_name ?? (optional($billing->customer->user)->name ?? 'Deleted Customer') }}
-                                            </div>
-                                            <div class="text-xs text-gray-500">
-                                                {{ optional($billing->customer->user)->phone ?? '-' }}
-                                            </div>
-                                            @if ($billing->customer && $billing->customer->hasLocation())
-                                                <a href="{{ $billing->customer->google_maps_link }}" target="_blank"
-                                                    class="text-xs text-blue-500 hover:underline flex items-center mt-1">
-                                                    <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor"
-                                                        viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z">
-                                                        </path>
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                    </svg>
-                                                    Lihat Lokasi
-                                                </a>
-                                            @endif
-                                        </div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ optional($billing->customer)->company_name ?? (optional($billing->customer->user)->name ?? 'Deleted') }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">
+                                        {{ optional($billing->customer->user)->phone ?? '-' }}
                                     </div>
                                 </td>
+                                
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ optional($billing->package)->name }}</div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        {{ $billing->package ? $billing->package->name : Str::limit($billing->notes, 30) }}
+                                    </div>
                                     <div class="text-xs text-gray-500">
                                         {{ $billing->start_date ? $billing->start_date->format('d M') : '-' }} -
                                         {{ $billing->end_date ? $billing->end_date->format('d M Y') : '-' }}
                                     </div>
+                                    @if(!$billing->package)
+                                        <span class="text-xs text-blue-600 italic font-medium">(Custom Package)</span>
+                                    @endif
                                 </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div
-                                        class="text-sm font-medium {{ $billing->isOverdue() && $billing->status != 'paid' ? 'text-red-600' : 'text-gray-900' }}">
+                                    <div class="text-sm font-medium {{ $billing->isOverdue() && $billing->status != 'paid' ? 'text-red-600' : 'text-gray-900' }}">
                                         {{ $billing->due_date->format('d M Y') }}
                                     </div>
-                                    @if ($billing->status != 'paid')
-                                        <div class="text-xs text-gray-500">
-                                            @if ($billing->getDaysUntilDue() > 0)
-                                                {{ $billing->getDaysUntilDue() }} hari lagi
-                                            @elseif($billing->getDaysUntilDue() == 0)
-                                                <span class="text-orange-600 font-bold">Hari ini!</span>
-                                            @else
-                                                <span class="text-red-600 font-bold">Telat
-                                                    {{ abs($billing->getDaysUntilDue()) }} hari</span>
-                                            @endif
-                                        </div>
-                                    @endif
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm font-bold text-gray-900">
@@ -219,8 +155,7 @@
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <span
-                                        class="px-3 py-1 text-xs font-semibold rounded-full {{ $billing->getStatusBadgeClass() }}">
+                                    <span class="px-3 py-1 text-xs font-semibold rounded-full {{ $billing->getStatusBadgeClass() }}">
                                         {{ $billing->getStatusLabel() }}
                                     </span>
                                 </td>
@@ -232,30 +167,17 @@
                                                 Bayar
                                             </a>
                                         @endif
-
-                                        <a href="{{ route('billings.show', $billing) }}"
-                                            class="text-gray-400 hover:text-gray-600">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                                </path>
+                                        <a href="{{ route('billings.show', $billing) }}" class="text-gray-400 hover:text-gray-600">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                             </svg>
                                         </a>
-
-                                        <form action="{{ route('billings.destroy', $billing) }}" method="POST"
-                                            onsubmit="return confirm('Hapus tagihan ini? Data tidak bisa dikembalikan.')"
-                                            class="inline">
-                                            @csrf
-                                            @method('DELETE')
+                                        <form action="{{ route('billings.destroy', $billing) }}" method="POST" onsubmit="return confirm('Hapus?')" class="inline">
+                                            @csrf @method('DELETE')
                                             <button type="submit" class="text-gray-400 hover:text-red-600">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor"
-                                                    viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                                    </path>
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                                                 </svg>
                                             </button>
                                         </form>
@@ -265,14 +187,7 @@
                         @empty
                             <tr>
                                 <td colspan="7" class="px-6 py-12 text-center bg-gray-50">
-                                    <svg class="mx-auto h-12 w-12 text-gray-300" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                    <p class="mt-2 text-sm text-gray-500">Belum ada data tagihan.</p>
-                                    <p class="text-xs text-gray-400">Klik "Generate Massal" untuk membuat tagihan otomatis.
-                                    </p>
+                                    <p class="text-gray-500">Belum ada data tagihan.</p>
                                 </td>
                             </tr>
                         @endforelse
@@ -281,17 +196,16 @@
             </div>
         </div>
 
+        {{-- Mobile View --}}
         <div class="lg:hidden space-y-4">
             @forelse($billings as $billing)
                 <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
                     <div class="flex justify-between items-start mb-3 border-b border-gray-100 pb-3">
                         <div>
-                            <span
-                                class="block font-mono text-sm font-bold text-gray-900">{{ $billing->billing_code }}</span>
-                            <span class="text-xs text-gray-500">{{ $billing->billing_date->format('d M Y') }}</span>
+                            <span class="block font-mono text-sm font-bold text-gray-900">{{ $billing->billing_code }}</span>
+                            <span class="text-xs text-gray-500">{{ $billing->created_at->format('d M Y') }}</span>
                         </div>
-                        <span
-                            class="px-2.5 py-1 text-xs font-semibold rounded-full {{ $billing->getStatusBadgeClass() }}">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full {{ $billing->getStatusBadgeClass() }}">
                             {{ $billing->getStatusLabel() }}
                         </span>
                     </div>
@@ -299,24 +213,26 @@
                     <div class="space-y-2 mb-4">
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">Customer:</span>
-                            <span
-                                class="font-medium text-gray-900 text-right">{{ optional($billing->customer->user)->name ?? 'N/A' }}</span>
+                            <span class="font-medium text-gray-900 text-right">{{ optional($billing->customer->user)->name ?? 'N/A' }}</span>
                         </div>
+                        
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">Paket:</span>
-                            <span class="text-gray-900 text-right">{{ optional($billing->package)->name }}</span>
+                            <span class="text-gray-900 text-right">
+                                {{ $billing->package ? $billing->package->name : Str::limit($billing->notes, 30) }}
+                                @if(!$billing->package) <span class="text-xs text-blue-600">(Custom)</span> @endif
+                            </span>
                         </div>
+
                         <div class="flex justify-between text-sm">
                             <span class="text-gray-500">Jatuh Tempo:</span>
-                            <span
-                                class="{{ $billing->isOverdue() ? 'text-red-600 font-bold' : 'text-gray-900' }} text-right">
+                            <span class="{{ $billing->isOverdue() ? 'text-red-600 font-bold' : 'text-gray-900' }} text-right">
                                 {{ $billing->due_date->format('d/m/Y') }}
                             </span>
                         </div>
                         <div class="flex justify-between items-center bg-gray-50 p-2 rounded">
                             <span class="text-gray-500 text-sm">Total:</span>
-                            <span class="font-bold text-gray-900 text-lg">Rp
-                                {{ number_format($billing->amount, 0, ',', '.') }}</span>
+                            <span class="font-bold text-gray-900 text-lg">Rp {{ number_format($billing->amount, 0, ',', '.') }}</span>
                         </div>
                     </div>
 
@@ -331,8 +247,7 @@
                             class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-center py-2 rounded-lg text-sm font-medium transition">
                             Detail
                         </a>
-                        <form action="{{ route('billings.destroy', $billing) }}" method="POST"
-                            onsubmit="return confirm('Hapus?')" class="w-full">
+                        <form action="{{ route('billings.destroy', $billing) }}" method="POST" onsubmit="return confirm('Hapus?')" class="w-full">
                             @csrf @method('DELETE')
                             <button type="submit"
                                 class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition">

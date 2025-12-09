@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - SPD LINK Quality Internet Solutions</title>
+    <title>Login | {{ config('app.name') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -33,26 +33,12 @@
             margin-bottom: 2rem;
         }
 
-        .logo-icon {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 64px;
-            height: 64px;
-            background-color: #4f46e5;
-            border-radius: 1rem;
+        /* Style Baru untuk Logo Image */
+        .logo-img {
+            height: 80px; /* Tinggi logo disesuaikan */
+            width: auto;  /* Lebar menyesuaikan proporsi */
             margin-bottom: 1rem;
-        }
-
-        .logo-icon svg {
-            width: 36px;
-            height: 36px;
-            color: white;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2.5;
-            stroke-linecap: round;
-            stroke-linejoin: round;
+            object-fit: contain;
         }
 
         h1 {
@@ -306,45 +292,34 @@
 
 <body>
     <div class="container">
-        <!-- Logo Section -->
         <div class="logo-section">
-            <div class="logo-icon">
-                <svg viewBox="0 0 24 24">
-                    <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-            </div>
-            <h1>SPD-Link</h1>
+            <img src="{{ asset('Logo-SPDLINK.png') }}" alt="Logo SPD-Link" class="logo-img">
+            
+            <h1>{{ config('app.name') }}</h1>
             <p class="subtitle">Quality Internet Solutions</p>
         </div>
 
-        <!-- Login Card -->
         <div class="card">
             <div class="card-header">
                 <h2>Selamat Datang</h2>
                 <p>Masuk ke akun Anda</p>
             </div>
 
-            <!-- Error Message (shown if @errors exist) -->
-            <!-- Uncomment this section in your Laravel blade file: -->
             @if ($errors->any())
                 <div class="error-message">
                     {{ $errors->first() }}
                 </div>
             @endif
 
-
             <form method="POST" action="{{ route('login.post') }}">
-                <!-- CSRF Token (Laravel) -->
                 @csrf
 
-                <!-- Email/Phone/Billing Code Input -->
                 <div class="form-group">
                     <label for="login">Email / Telepon / Kode Billing</label>
                     <input type="text" id="login" name="login"
                         placeholder="Masukkan email, telepon, atau kode billing" required>
                 </div>
 
-                <!-- Password Input -->
                 <div class="form-group">
                     <label for="password">Password</label>
                     <div class="password-wrapper">
@@ -363,7 +338,6 @@
                     </div>
                 </div>
 
-                <!-- Remember Me & Forgot Password -->
                 <div class="remember-forgot">
                     <label class="remember-label">
                         <input type="checkbox" name="remember">
@@ -372,16 +346,13 @@
                     <a href="#" class="forgot-link">Lupa password?</a>
                 </div>
 
-                <!-- Login Button -->
                 <button type="submit" class="btn-primary">Masuk</button>
             </form>
 
-            <!-- Divider -->
             <div class="divider">
                 <span>Butuh bantuan?</span>
             </div>
 
-            <!-- Contact Support -->
             <div class="contact-buttons">
                 <a href="https://wa.me/6281234567890" target="_blank" class="btn-contact whatsapp">
                     <svg viewBox="0 0 24 24">
@@ -400,7 +371,6 @@
             </div>
         </div>
 
-        <!-- Footer -->
         <div class="footer">
             <p>&copy; 2024 SPD-Link. All rights reserved.</p>
         </div>

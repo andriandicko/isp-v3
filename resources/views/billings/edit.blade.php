@@ -46,20 +46,48 @@
 
                     <div class="space-y-4">
 
+                        <!-- Dropdown Paket Internet -->
+                        {{-- PERBAIKAN: Menambahkan logic Custom Package --}}
                         <div>
                             <label for="package_id" class="block text-sm font-medium text-gray-700 mb-1">Paket
                                 Internet</label>
-                            <select name="package_id" id="package_id" onchange="updatePrice()"
+                            <select name="package_id" id="package_id"
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+                                
+                                {{-- Opsi Custom Manual --}}
+                                <option value="custom" class="font-bold text-blue-600" 
+                                    {{ old('package_id', $billing->package_id) == null ? 'selected' : '' }}>
+                                    + Input Manual / Custom (Harga Bebas)
+                                </option>
+
                                 @foreach ($packages as $package)
                                     <option value="{{ $package->id }}" data-price="{{ $package->price }}"
-                                        {{ $billing->package_id == $package->id ? 'selected' : '' }}>
+                                        {{ old('package_id', $billing->package_id) == $package->id ? 'selected' : '' }}>
                                         {{ $package->name }} - Rp {{ number_format($package->price, 0, ',', '.') }}
                                     </option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-blue-500 mt-1">Mengganti paket akan otomatis mengubah nominal tagihan di
-                                bawah.</p>
+                        </div>
+
+                        <!-- Amount & Notes -->
+                        <div>
+                            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Total Tagihan (Rp)</label>
+                            
+                            {{-- Input Amount: Readonly default, terbuka jika custom --}}
+                            <input type="number" name="amount" id="amount" 
+                                value="{{ old('amount', $billing->amount) }}"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition font-bold text-gray-700 
+                                {{ old('package_id', $billing->package_id) == null ? '' : 'bg-gray-100 cursor-not-allowed' }}"
+                                {{ old('package_id', $billing->package_id) == null ? '' : 'readonly' }}
+                                required>
+                        </div>
+
+                        {{-- Kolom Notes (Wajib Muncul di Edit untuk koreksi nama paket custom) --}}
+                        <div id="notes-wrapper" class="{{ old('package_id', $billing->package_id) == null ? '' : 'hidden' }}">
+                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Nama Paket Custom / Catatan</label>
+                            <textarea name="notes" id="notes" rows="2"
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 transition"
+                                placeholder="Contoh: Paket Corporate Dedicated 50Mbps">{{ old('notes', $billing->notes) }}</textarea>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -77,17 +105,6 @@
                                     value="{{ old('end_date', $billing->end_date ? $billing->end_date->format('Y-m-d') : '') }}"
                                     class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
                             </div>
-                        </div>
-
-                        <div>
-                            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Total Tagihan
-                                (Rp)</label>
-                            <input type="number" name="amount" id="amount"
-                                value="{{ old('amount', $billing->amount) }}"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition font-bold text-gray-700"
-                                required>
-                            <p class="text-xs text-gray-500 mt-1">Anda bisa mengubah manual jika ada diskon atau denda
-                                khusus.</p>
                         </div>
 
                         <div>
@@ -113,12 +130,6 @@
                             </select>
                         </div>
 
-                        <div>
-                            <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Catatan Admin</label>
-                            <textarea name="notes" id="notes" rows="3"
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                                placeholder="Contoh: Koreksi harga karena kesalahan input...">{{ old('notes', $billing->notes) }}</textarea>
-                        </div>
                     </div>
 
                     <div class="flex gap-4 pt-4 border-t border-gray-100">
@@ -137,18 +148,33 @@
     </div>
 
     <script>
-        function updatePrice() {
-            // Ambil elemen dropdown
-            const select = document.getElementById('package_id');
-            // Ambil opsi yang dipilih
-            const selectedOption = select.options[select.selectedIndex];
-            // Ambil data-price dari opsi tersebut
-            const price = selectedOption.getAttribute('data-price');
+        // Logic JS untuk Edit (mirip Create)
+        document.getElementById('package_id').addEventListener('change', function() {
+            const select = this;
+            const selectedValue = select.value;
+            const amountInput = document.getElementById('amount');
+            const notesWrapper = document.getElementById('notes-wrapper');
 
-            // Masukkan ke input amount
-            if (price) {
-                document.getElementById('amount').value = price;
+            if (selectedValue === 'custom') {
+                // Mode Custom
+                amountInput.readOnly = false;
+                amountInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+                amountInput.classList.add('bg-white');
+                notesWrapper.classList.remove('hidden');
+            } else {
+                // Mode Paket Biasa
+                const selectedOption = select.options[select.selectedIndex];
+                const price = selectedOption.getAttribute('data-price');
+                
+                amountInput.readOnly = true;
+                amountInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+                amountInput.classList.remove('bg-white');
+                notesWrapper.classList.add('hidden');
+
+                if (price) {
+                    amountInput.value = price;
+                }
             }
-        }
+        });
     </script>
 @endsection

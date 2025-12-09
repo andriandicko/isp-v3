@@ -1,6 +1,191 @@
 @extends('layouts.app')
 
 @section('content')
+    {{-- DEFINISI LOGIKA MENGGUNAKAN FUNGSI BIASA (Lebih Aman dari Race Condition) --}}
+    <script>
+        function customerForm() {
+            return {
+                type: '',
+                lat: -6.200000,
+                lng: 106.816666,
+                map: null,
+                marker: null,
+
+                // Logic States
+                coverageStatus: '', // 'covered', 'not_covered'
+                isCovered: false,
+                checkingCoverage: false,
+                locationSelected: false,
+
+                // Show/Hide Form
+                showFormFields: false,
+                showModal: false,
+
+                // Form Data
+                coverageAreaId: '',
+                coverageAreaName: '',
+                korlapId: '',
+                korlapName: '',
+
+                init() {
+                    console.log('Customer Form Initialized'); // Debugging check
+                    this.$watch('type', (val) => {
+                        console.log('Type changed to:', val); // Debugging check
+                        if (val) {
+                            this.$nextTick(() => {
+                                // Cek elemen map ada atau tidak sebelum inisialisasi
+                                if (!this.map && document.getElementById('map')) {
+                                    this.initMap();
+                                } else if (this.map) {
+                                    setTimeout(() => this.map.invalidateSize(), 200);
+                                }
+                                
+                                // Reset logika saat tipe berubah
+                                this.resetLogic();
+                            });
+                        }
+                    });
+                },
+
+                resetLogic() {
+                    this.showFormFields = false;
+                    this.showModal = false;
+                    this.coverageStatus = '';
+                    this.locationSelected = false;
+                },
+
+                resetMap() {
+                    this.showModal = false;
+                    // Reset posisi marker jika diperlukan
+                },
+
+                submitForm(e) {
+                    // Validasi manual untuk kasus Business + Not Covered
+                    if (this.type === 'business' && !this.isCovered) {
+                        if (!confirm('Lokasi ini diluar coverage area. Lanjutkan simpan data?')) {
+                            return;
+                        }
+                    }
+                    e.target.submit();
+                },
+
+                initMap() {
+                    const mapEl = document.getElementById('map');
+                    if (!mapEl) return; // Hentikan jika elemen map belum ada di DOM
+
+                    // Mencegah re-inisialisasi jika map sudah ada
+                    if (this.map !== null) {
+                        this.map.invalidateSize();
+                        return;
+                    }
+
+                    this.map = L.map('map').setView([this.lat, this.lng], 13);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '© OpenStreetMap'
+                    }).addTo(this.map);
+
+                    this.marker = L.marker([this.lat, this.lng], {
+                        draggable: true
+                    }).addTo(this.map);
+
+                    // Event: Drag End
+                    this.marker.on('dragend', (e) => {
+                        const pos = e.target.getLatLng();
+                        this.processLocation(pos.lat, pos.lng);
+                    });
+
+                    // Event: Map Click
+                    this.map.on('click', (e) => {
+                        this.marker.setLatLng(e.latlng);
+                        this.processLocation(e.latlng.lat, e.latlng.lng);
+                    });
+
+                    setTimeout(() => this.map.invalidateSize(), 200);
+                },
+
+                getUserLocation() {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(pos => {
+                            const lat = pos.coords.latitude;
+                            const lng = pos.coords.longitude;
+                            this.marker.setLatLng([lat, lng]);
+                            this.map.setView([lat, lng], 16);
+                            this.processLocation(lat, lng);
+                        }, () => alert('Gagal mendapatkan lokasi.'));
+                    } else {
+                        alert('Browser tidak support geolocation.');
+                    }
+                },
+
+                async processLocation(lat, lng) {
+                    this.lat = parseFloat(lat).toFixed(7);
+                    this.lng = parseFloat(lng).toFixed(7);
+                    this.locationSelected = true;
+                    this.checkingCoverage = true;
+
+                    try {
+                        const response = await fetch("{{ route('customers.check-coverage') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({ lat, lng })
+                        });
+
+                        const data = await response.json();
+                        this.checkingCoverage = false;
+
+                        if (!response.ok || data.error) {
+                            throw new Error(data.message || 'Terjadi kesalahan pada server.');
+                        }
+
+                        if (data.covered) {
+                            // LOGIKA TERCOVER
+                            this.isCovered = true;
+                            this.coverageStatus = 'covered';
+                            this.showFormFields = true;
+                            this.showModal = false;
+
+                            this.coverageAreaId = data.coverage_area.id;
+                            this.coverageAreaName = data.coverage_area.name;
+                            if (data.korlap) {
+                                this.korlapId = data.korlap.id;
+                                this.korlapName = data.korlap.name;
+                            } else {
+                                this.korlapName = 'Belum ada Korlap';
+                            }
+                        } else {
+                            // LOGIKA TIDAK TERCOVER
+                            this.isCovered = false;
+                            this.coverageStatus = 'not_covered';
+                            this.coverageAreaId = '';
+                            this.coverageAreaName = '';
+                            this.korlapId = '';
+                            this.korlapName = '';
+
+                            if (this.type === 'business') {
+                                this.showFormFields = true;
+                                this.showModal = false;
+                            } else {
+                                this.showFormFields = false;
+                                this.showModal = true;
+                            }
+                        }
+
+                    } catch (error) {
+                        console.error(error);
+                        this.checkingCoverage = false;
+                        alert('Gagal: ' + error.message);
+                    }
+                }
+            };
+        }
+    </script>
+
+    {{-- Perbaikan: Panggil fungsi customerForm() dengan tanda kurung --}}
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" x-data="customerForm()">
 
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -52,8 +237,8 @@
                     <div class="p-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                            <div @click="type = 'residential'"
-                                class="relative flex flex-col p-4 bg-white border rounded-lg shadow-sm cursor-pointer transition duration-200 ease-in-out"
+                            <!-- Tombol Residential (Menggunakan Label HTML - Klik di mana saja pada kotak akan memilih radio) -->
+                            <label class="relative flex flex-col p-4 bg-white border rounded-lg shadow-sm cursor-pointer transition duration-200 ease-in-out select-none"
                                 :class="type === 'residential' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50' :
                                     'border-gray-200 hover:border-indigo-300'">
 
@@ -79,10 +264,10 @@
                                             clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                            </div>
+                            </label>
 
-                            <div @click="type = 'business'"
-                                class="relative flex flex-col p-4 bg-white border rounded-lg shadow-sm cursor-pointer transition duration-200 ease-in-out"
+                            <!-- Tombol Business (Menggunakan Label HTML) -->
+                            <label class="relative flex flex-col p-4 bg-white border rounded-lg shadow-sm cursor-pointer transition duration-200 ease-in-out select-none"
                                 :class="type === 'business' ? 'border-indigo-600 ring-1 ring-indigo-600 bg-indigo-50' :
                                     'border-gray-200 hover:border-indigo-300'">
 
@@ -94,7 +279,7 @@
                                             'bg-purple-100 text-purple-600'">
                                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                         </svg>
                                     </span>
                                     <span class="text-sm font-bold text-gray-900">Business (Corporate)</span>
@@ -108,13 +293,13 @@
                                             clip-rule="evenodd" />
                                     </svg>
                                 </div>
-                            </div>
+                            </label>
 
                         </div>
                     </div>
                 </div>
 
-                <div x-show="type !== ''" x-transition.opacity.duration.500ms
+                <div x-show="type !== ''" x-transition.duration.500ms
                     class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                         <div class="flex items-center">
@@ -219,27 +404,22 @@
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Status Awal</label>
                                         <select name="status"
                                             class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                                            <option value="active" selected>Active</option>
-                                            <option value="pending">Pending</option>
+                                            <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
+                                            <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="isolir" {{ old('status') == 'isolir' ? 'selected' : '' }}>Isolir</option>
+                                            <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
                                         </select>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-1">Coverage Area</label>
                                         <input type="text" readonly x-model="coverageAreaName"
                                             class="block w-full rounded-lg border border-gray-300 bg-gray-100 px-4 py-2.5 text-gray-500 shadow-sm cursor-not-allowed sm:text-sm">
-                                        <input type="hidden" name="coverage_area_id" x-model="coverageAreaId">
+                                        
+                                        <!-- Update Input Hidden: Di-disable jika Business & Tidak Tercover agar tidak dikirim ke server -->
+                                        <input type="hidden" name="coverage_area_id" x-model="coverageAreaId"
+                                            :disabled="type === 'business' && !isCovered">
 
-                                        <div x-show="!isCovered && type === 'business'" class="mt-2">
-                                            <p class="text-xs text-red-500 mb-1 font-medium">Pilih manual (Business Only):
-                                            </p>
-                                            <select name="coverage_area_id" x-model="coverageAreaId"
-                                                class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm text-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                                <option value="">-- Pilih Area --</option>
-                                                @foreach ($coverageAreas as $area)
-                                                    <option value="{{ $area->id }}">{{ $area->name }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        <!-- Bagian Dropdown Manual dihapus sesuai request -->
                                     </div>
                                 </div>
 
@@ -404,9 +584,6 @@
 @endsection
 
 @push('scripts')
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script>
         function previewImage(event, previewId) {
             const file = event.target.files[0];
@@ -420,177 +597,5 @@
                 reader.readAsDataURL(file);
             }
         }
-
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('customerForm', () => ({
-                type: '',
-                lat: -6.200000,
-                lng: 106.816666,
-                map: null,
-                marker: null,
-
-                // Logic States
-                coverageStatus: '', // 'covered', 'not_covered'
-                isCovered: false,
-                checkingCoverage: false,
-                locationSelected: false,
-
-                // Show/Hide Form
-                showFormFields: false,
-                showModal: false,
-
-                // Form Data
-                coverageAreaId: '',
-                coverageAreaName: '',
-                korlapId: '',
-                korlapName: '',
-
-                init() {
-                    this.$watch('type', (val) => {
-                        if (val) {
-                            this.$nextTick(() => {
-                                if (!this.map) this.initMap();
-                                // Reset form if type changes
-                                this.resetLogic();
-                            });
-                        }
-                    });
-                },
-
-                resetLogic() {
-                    this.showFormFields = false;
-                    this.showModal = false;
-                    this.coverageStatus = '';
-                    this.locationSelected = false;
-                },
-
-                resetMap() {
-                    this.showModal = false;
-                    // Optional: Reset marker position? No need, user just picks new one.
-                },
-
-                submitForm(e) {
-                    // Manual validation for Business + Not Covered scenario
-                    if (this.type === 'business' && !this.isCovered) {
-                        if (!confirm('Lokasi ini diluar coverage area. Lanjutkan simpan data?')) {
-                            return;
-                        }
-                    }
-                    e.target.submit();
-                },
-
-                initMap() {
-                    this.map = L.map('map').setView([this.lat, this.lng], 13);
-
-                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                        maxZoom: 19,
-                        attribution: '© OpenStreetMap'
-                    }).addTo(this.map);
-
-                    this.marker = L.marker([this.lat, this.lng], {
-                        draggable: true
-                    }).addTo(this.map);
-
-                    // Event: Drag End
-                    this.marker.on('dragend', (e) => {
-                        const pos = e.target.getLatLng();
-                        this.processLocation(pos.lat, pos.lng);
-                    });
-
-                    // Event: Map Click
-                    this.map.on('click', (e) => {
-                        this.marker.setLatLng(e.latlng);
-                        this.processLocation(e.latlng.lat, e.latlng.lng);
-                    });
-
-                    setTimeout(() => this.map.invalidateSize(), 200);
-                },
-
-                getUserLocation() {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(pos => {
-                            const lat = pos.coords.latitude;
-                            const lng = pos.coords.longitude;
-                            this.marker.setLatLng([lat, lng]);
-                            this.map.setView([lat, lng], 16);
-                            this.processLocation(lat, lng);
-                        }, () => alert('Gagal mendapatkan lokasi.'));
-                    } else {
-                        alert('Browser tidak support geolocation.');
-                    }
-                },
-
-                async processLocation(lat, lng) {
-                    this.lat = parseFloat(lat).toFixed(7);
-                    this.lng = parseFloat(lng).toFixed(7);
-                    this.locationSelected = true;
-                    this.checkingCoverage = true;
-
-                    try {
-                        const response = await fetch("{{ route('customers.check-coverage') }}", {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                // Pastikan meta csrf-token ada di layout
-                                'X-CSRF-TOKEN': document.querySelector(
-                                    'meta[name="csrf-token"]').getAttribute('content')
-                            },
-                            body: JSON.stringify({
-                                lat,
-                                lng
-                            })
-                        });
-
-                        // Ambil JSON response
-                        const data = await response.json();
-                        this.checkingCoverage = false;
-
-                        // Cek jika server mengirim sinyal Error
-                        if (!response.ok || data.error) {
-                            throw new Error(data.message || 'Terjadi kesalahan pada server.');
-                        }
-
-                        if (data.covered) {
-                            // LOGIKA TERCOVER (Sama seperti sebelumnya)
-                            this.isCovered = true;
-                            this.coverageStatus = 'covered';
-                            this.showFormFields = true;
-                            this.showModal = false;
-
-                            this.coverageAreaId = data.coverage_area.id;
-                            this.coverageAreaName = data.coverage_area.name;
-                            if (data.korlap) {
-                                this.korlapId = data.korlap.id;
-                                this.korlapName = data.korlap.name;
-                            } else {
-                                this.korlapName = 'Belum ada Korlap';
-                            }
-                        } else {
-                            // LOGIKA TIDAK TERCOVER
-                            this.isCovered = false;
-                            this.coverageStatus = 'not_covered';
-                            this.coverageAreaId = '';
-                            this.coverageAreaName = '';
-                            this.korlapId = '';
-                            this.korlapName = '';
-
-                            if (this.type === 'business') {
-                                this.showFormFields = true;
-                                this.showModal = false;
-                            } else {
-                                this.showFormFields = false;
-                                this.showModal = true;
-                            }
-                        }
-
-                    } catch (error) {
-                        console.error(error);
-                        this.checkingCoverage = false;
-                        // TAMPILKAN PESAN ERROR ASLI DARI SERVER DI SINI
-                        alert('Gagal: ' + error.message);
-                    }
-                }
-            }));
-        });
     </script>
 @endpush

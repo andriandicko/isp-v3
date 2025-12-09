@@ -31,7 +31,13 @@
                             <div class="grid grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label class="text-xs text-gray-500 uppercase tracking-wide">Paket</label>
-                                    <div class="font-semibold text-gray-800">{{ optional($billing->package)->name }}</div>
+                                    {{-- PERBAIKAN: Tampilkan Nama Paket atau Custom Note --}}
+                                    <div class="font-semibold text-gray-800">
+                                        {{ $billing->package ? $billing->package->name : Str::limit($billing->notes, 30) }}
+                                    </div>
+                                    @if(!$billing->package)
+                                        <div class="text-xs text-blue-500">(Custom)</div>
+                                    @endif
                                 </div>
                                 <div>
                                     <label class="text-xs text-gray-500 uppercase tracking-wide">Harga Paket</label>
