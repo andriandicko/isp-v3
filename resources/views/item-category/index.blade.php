@@ -12,7 +12,9 @@
                     </div>
                     <a href="{{ route('item-category.create') }}"
                         class="inline-flex items-center justify-center bg-blue-600 text-white px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow-md hover:shadow-lg">
-                        <i class="fas fa-plus mr-2"></i>
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                        </svg>
                         <span class="font-medium">Tambah Kategori</span>
                     </a>
                 </div>
@@ -50,7 +52,9 @@
                                         <a href="{{ route('item-category.edit', $category) }}"
                                             class="inline-flex items-center px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-md hover:bg-yellow-200 transition-colors duration-200"
                                             title="Edit">
-                                            <i class="fas fa-edit"></i>
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                            </svg>
                                         </a>
                                         <form action="{{ route('item-category.destroy', $category) }}" method="POST"
                                             class="inline">
@@ -60,7 +64,9 @@
                                                 class="inline-flex items-center px-3 py-1.5 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors duration-200"
                                                 onclick="return confirm('Yakin ingin menghapus kategori ini?')"
                                                 title="Hapus">
-                                                <i class="fas fa-trash"></i>
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
                                             </button>
                                         </form>
                                     </div>
@@ -70,7 +76,9 @@
                             <tr>
                                 <td colspan="3" class="px-6 py-12 text-center">
                                     <div class="flex flex-col items-center justify-center text-gray-400">
-                                        <i class="fas fa-inbox text-5xl mb-4"></i>
+                                        <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                                        </svg>
                                         <p class="text-lg font-medium text-gray-500">Tidak ada data kategori</p>
                                         <p class="text-sm text-gray-400 mt-1">Mulai dengan menambahkan kategori baru</p>
                                     </div>
@@ -98,7 +106,9 @@
                         <div class="flex gap-2 mt-3">
                             <a href="{{ route('item-category.edit', $category) }}"
                                 class="flex-1 inline-flex items-center justify-center px-4 py-2 bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors duration-200">
-                                <i class="fas fa-edit mr-2"></i>
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
                                 <span class="font-medium">Edit</span>
                             </a>
                             <form action="{{ route('item-category.destroy', $category) }}" method="POST" class="flex-1">
@@ -107,7 +117,9 @@
                                 <button type="submit"
                                     class="w-full inline-flex items-center justify-center px-4 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors duration-200"
                                     onclick="return confirm('Yakin ingin menghapus kategori ini?')">
-                                    <i class="fas fa-trash mr-2"></i>
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
                                     <span class="font-medium">Hapus</span>
                                 </button>
                             </form>
@@ -116,7 +128,9 @@
                 @empty
                     <div class="p-8 text-center">
                         <div class="flex flex-col items-center justify-center text-gray-400">
-                            <i class="fas fa-inbox text-5xl mb-4"></i>
+                            <svg class="w-16 h-16 mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+                            </svg>
                             <p class="text-lg font-medium text-gray-500">Tidak ada data kategori</p>
                             <p class="text-sm text-gray-400 mt-1">Mulai dengan menambahkan kategori baru</p>
                         </div>

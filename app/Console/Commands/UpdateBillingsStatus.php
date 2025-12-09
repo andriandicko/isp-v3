@@ -2,40 +2,75 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Billing;
-use Carbon\Carbon;
 use Illuminate\Console\Command;
+use App\Http\Controllers\BillingController; // Import Controller
 
-class UpdateBillingStatus extends Command
+class UpdateBillingsStatus extends Command
 {
     /**
-     * The name and signature of the console command.
-     *
-     * @var string
+     * Nama command yang akan dipanggil di Cron Job / Terminal
      */
-    protected $signature = 'billing:update-status';
+    protected $signature = 'billing:check-overdue';
 
     /**
-     * The console command description.
-     *
-     * @var string
+     * Deskripsi command
      */
-    protected $description = 'Update billing status to overdue if past due date';
+    protected $description = 'Cek tagihan jatuh tempo dan otomatis isolir pelanggan';
 
     /**
-     * Execute the console command.
+     * Eksekusi perintah
      */
     public function handle()
     {
-        $today = Carbon::now();
+        $this->info('Memulai pengecekan tagihan...');
 
-        // Update overdue billings
-        $updated = Billing::where('status', 'pending')
+        // Panggil fungsi checkOverdue() dari BillingController
+        // Ini memastikan logika yang dijalankan sama persis dengan tombol "Cek Isolir" di web
+        $controller = new BillingController();
+        
+        // Kita perlu mock Request kosong karena controller butuh object Request (opsional tergantung implementasi, tapi method checkOverdue kita tidak butuh input)
+        // Namun karena checkOverdue() kita return "back()->with()", itu akan error di console karena tidak ada session/view.
+        
+        // --- SOLUSI: Kita copy logic intinya saja ke sini agar aman di Console ---
+        // Atau memodifikasi Controller agar return value-nya fleksibel.
+        // Tapi cara paling aman dan cepat untuk console adalah copy logic intinya:
+        
+        $today = \Carbon\Carbon::now();
+        $countExpired = 0;
+        $countIsolir = 0;
+
+        // 1. CEK MASA AKTIF HABIS (Paid -> Overdue)
+        $expiredBillings = \App\Models\Billing::where('status', 'paid')
+            ->where('end_date', '<', $today)
+            ->get();
+
+        foreach ($expiredBillings as $bill) {
+            $bill->update([
+                'status' => 'overdue',
+                'due_date' => \Carbon\Carbon::parse($bill->end_date)->addDays(5)
+            ]);
+            $countExpired++;
+        }
+
+        // 2. CEK JATUH TEMPO (Pending/Overdue -> Isolir)
+        $overdueBills = \App\Models\Billing::with('customer')
+            ->whereIn('status', ['pending', 'overdue'])
             ->where('due_date', '<', $today)
-            ->update(['status' => 'overdue']);
+            ->get();
 
-        $this->info("Updated {$updated} billing(s) to overdue status.");
+        foreach ($overdueBills as $bill) {
+            if ($bill->status != 'overdue') {
+                $bill->update(['status' => 'overdue']);
+            }
 
+            if ($bill->customer && $bill->customer->status == 'active') {
+                $bill->customer->update(['status' => 'isolir']);
+                $countIsolir++;
+            }
+        }
+
+        $this->info("Selesai. $countExpired tagihan expired, $countIsolir pelanggan diisolir.");
+        
         return Command::SUCCESS;
     }
 }
