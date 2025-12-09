@@ -27,10 +27,26 @@ class IncomingGoodController extends Controller
         $suppliers = Supplier::where('status', 'active')->get();
         $items = Item::where('status', 'active')->with('category')->get();
 
-        // Generate kode transaksi
-        $lastTransaction = IncomingGood::latest()->first();
-        $number = $lastTransaction ? intval(substr($lastTransaction->transaction_code, -5)) + 1 : 1;
-        $transactionCode = 'IN-' . date('Ymd') . '-' . str_pad($number, 5, '0', STR_PAD_LEFT);
+        // --- PERBAIKAN GENERATE KODE (RESET PER HARI) ---
+        $today = date('Ymd');
+        $prefix = 'IN-' . $today . '-';
+
+        // Cari transaksi terakhir yang kodenya berawalan prefix HARI INI
+        $lastTransaction = IncomingGood::where('transaction_code', 'like', $prefix . '%')
+            ->orderBy('id', 'desc') // Ambil yang paling baru dibuat hari ini
+            ->first();
+
+        if ($lastTransaction) {
+            // Ambil 5 angka di belakang, lalu tambah 1
+            $lastNumber = (int) substr($lastTransaction->transaction_code, -5);
+            $number = $lastNumber + 1;
+        } else {
+            // Jika belum ada transaksi hari ini, mulai dari 1
+            $number = 1;
+        }
+
+        $transactionCode = $prefix . str_pad($number, 5, '0', STR_PAD_LEFT);
+        // ------------------------------------------------
 
         return view('incoming-goods.create', compact('warehouses', 'suppliers', 'items', 'transactionCode'));
     }
@@ -52,6 +68,7 @@ class IncomingGoodController extends Controller
 
         DB::beginTransaction();
         try {
+            // 1. Simpan Header (Tanpa total_amount karena pakai Accessor)
             $incomingGoods = IncomingGood::create([
                 'transaction_code' => $validated['transaction_code'],
                 'warehouse_id' => $validated['warehouse_id'],
@@ -63,8 +80,10 @@ class IncomingGoodController extends Controller
                 'status' => 'pending',
             ]);
 
+            // 2. Simpan Detail Items
             foreach ($validated['items'] as $item) {
                 $subtotal = $item['quantity'] * $item['price'];
+                
                 IncomingGoodsDetail::create([
                     'incoming_goods_id' => $incomingGoods->id,
                     'item_id' => $item['item_id'],
@@ -86,6 +105,7 @@ class IncomingGoodController extends Controller
 
     public function show(IncomingGood $incomingGood)
     {
+        // Load relasi details.item agar nama barang muncul di view
         $incomingGood->load(['warehouse', 'supplier', 'user', 'approver', 'details.item']);
         return view('incoming-goods.show', compact('incomingGood'));
     }
@@ -105,25 +125,26 @@ class IncomingGoodController extends Controller
                 'approved_at' => now(),
             ]);
 
-            // Update stock
+            // Update Stok di WarehouseStock
             foreach ($incomingGood->details as $detail) {
                 $stock = WarehouseStock::firstOrCreate(
                     [
                         'warehouse_id' => $incomingGood->warehouse_id,
                         'item_id' => $detail->item_id,
                     ],
-                    ['quantity' => 0]
+                    ['quantity' => 0] // Default jika belum ada
                 );
 
+                // Tambahkan stok
                 $stock->increment('quantity', $detail->quantity);
             }
 
             DB::commit();
             return redirect()->route('incoming-goods.show', $incomingGood)
-                ->with('success', 'Barang masuk berhasil diapprove dan stok telah diupdate.');
+                ->with('success', 'Barang masuk disetujui & stok bertambah.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return back()->with('error', 'Gagal approve: ' . $e->getMessage());
         }
     }
 
@@ -140,7 +161,7 @@ class IncomingGoodController extends Controller
         ]);
 
         return redirect()->route('incoming-goods.show', $incomingGood)
-            ->with('success', 'Barang masuk telah ditolak.');
+            ->with('success', 'Barang masuk ditolak.');
     }
 
     public function destroy(IncomingGood $incomingGood)
@@ -149,9 +170,20 @@ class IncomingGoodController extends Controller
             return back()->with('error', 'Transaksi yang sudah diapprove tidak dapat dihapus.');
         }
 
-        $incomingGood->delete();
-
-        return redirect()->route('incoming-goods.index')
-            ->with('success', 'Barang masuk berhasil dihapus.');
+        DB::beginTransaction();
+        try {
+            // Hapus detailnya dulu (Hard Delete karena detail tidak pakai SoftDeletes)
+            $incomingGood->details()->delete();
+            
+            // Hapus headernya (Soft Delete sesuai model)
+            $incomingGood->delete();
+            
+            DB::commit();
+            return redirect()->route('incoming-goods.index')
+                ->with('success', 'Barang masuk berhasil dihapus.');
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->with('error', 'Gagal hapus: ' . $e->getMessage());
+        }
     }
 }
