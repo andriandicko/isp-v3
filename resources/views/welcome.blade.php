@@ -2,7 +2,12 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    {{-- Meta Viewport Wajib untuk iPhone agar tidak nge-zoom aneh --}}
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    
+    {{-- Meta Tag untuk mengatasi Mixed Content (Gambar tidak load) di iPhone --}}
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    
     <title>SPDLINK - Quality Internet Solutions</title>
     
     {{-- Fonts --}}
@@ -12,34 +17,66 @@
     
     {{-- Tailwind CSS --}}
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
     
     {{-- Alpine.js for Interactivity --}}
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.13.3/cdn.min.js" defer></script>
 
     <style>
-        body { font-family: 'Plus Jakarta Sans', sans-serif; }
-        .gradient-text {
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-image: linear-gradient(to right, #2563EB, #4F46E5);
+        /* HANYA CSS ANIMASI (CSS Debug Merah SUDAH DIHAPUS) */
+        @keyframes blob {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+            animation: blob 7s infinite;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.5s ease-out;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Fix untuk smooth scrolling di iOS */
+        html {
+            -webkit-overflow-scrolling: touch;
         }
     </style>
 </head>
-<body class="antialiased bg-white text-slate-800">
+<body class="antialiased bg-white text-slate-800 font-sans">
 
     {{-- NAVBAR --}}
     <nav class="fixed w-full z-50 transition-all duration-300" 
          x-data="{ scrolled: false, mobileMenu: false }" 
          @scroll.window="scrolled = (window.pageYOffset > 20) ? true : false"
-         :class="scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'">
+         :class="scrolled ? 'bg-white/95 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'">
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center">
                 {{-- Logo --}}
                 <div class="flex items-center gap-2">
-                    <img src="{{ asset('Logo-SPDLINK.png') }}" alt="Logo SPDLINK" class="h-10 w-auto rounded-md shadow-sm bg-white">
-                    <span class="text-xl font-bold tracking-tight" :class="scrolled ? 'text-slate-900' : 'text-slate-900 text-white'">SPDLINK</span>
+                    <img src="{{ asset('Logo-SPDLINK.png') }}" alt="Logo SPDLINK" class="h-10 w-auto rounded-md shadow-sm bg-white" onerror="this.style.display='none'">
+                    <span class="text-xl font-bold tracking-tight" :class="scrolled ? 'text-slate-900' : 'text-slate-900 lg:text-white text-white'">SPDLINK</span>
                 </div>
 
                 {{-- Desktop Menu --}}
@@ -64,25 +101,32 @@
                 </div>
 
                 {{-- Mobile Menu Button --}}
-                <button @click="mobileMenu = !mobileMenu" class="lg:hidden p-2 rounded-md focus:outline-none" :class="scrolled ? 'text-slate-900' : 'text-slate-900 text-white'">
+                <button @click="mobileMenu = !mobileMenu" class="lg:hidden p-2 rounded-md focus:outline-none" :class="scrolled ? 'text-slate-900' : 'text-slate-900 lg:text-white text-white'">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
             </div>
         </div>
 
         {{-- Mobile Dropdown --}}
-        <div x-show="mobileMenu" x-transition class="lg:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
+        <div x-show="mobileMenu" 
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="lg:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
             <div class="px-4 pt-2 pb-6 space-y-2">
-                <a href="#home" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Beranda</a>
-                <a href="#about" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Tentang</a>
-                <a href="#pricing" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Paket Internet</a>
-                <a href="#testimonials" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Testimoni</a>
-                <a href="#coverage" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Cek Area</a>
-                <div class="pt-4 border-t border-gray-100">
+                <a href="#home" @click="mobileMenu = false" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Beranda</a>
+                <a href="#about" @click="mobileMenu = false" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Tentang</a>
+                <a href="#pricing" @click="mobileMenu = false" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Paket Internet</a>
+                <a href="#testimonials" @click="mobileMenu = false" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Testimoni</a>
+                <a href="#coverage" @click="mobileMenu = false" class="block px-3 py-2 text-base font-medium text-slate-700 hover:bg-blue-50 hover:text-blue-600 rounded-md">Cek Area</a>
+                <div class="pt-4 border-t border-gray-100 mt-2">
                     @auth
-                        <a href="{{ route('dashboard') }}" class="block w-full text-center px-4 py-2 bg-blue-600 text-white font-bold rounded-lg">Dashboard</a>
+                        <a href="{{ route('dashboard') }}" class="block w-full text-center px-4 py-3 bg-blue-600 text-white font-bold rounded-lg shadow-md">Dashboard</a>
                     @else
-                        <a href="{{ route('login') }}" class="block w-full text-center px-4 py-2 bg-slate-900 text-white font-bold rounded-lg">Login LinkOps</a>
+                        <a href="{{ route('login') }}" class="block w-full text-center px-4 py-3 bg-slate-900 text-white font-bold rounded-lg shadow-md">Login LinkOps</a>
                     @endauth
                 </div>
             </div>
@@ -93,6 +137,7 @@
     <section id="home" class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden bg-slate-900">
         <div class="absolute inset-0">
             <div class="absolute inset-0 bg-gradient-to-br from-blue-900/40 to-slate-900/90 z-10"></div>
+            {{-- Menggunakan URL absolut untuk gambar agar aman --}}
             <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=2072&auto=format&fit=crop" class="w-full h-full object-cover opacity-30" alt="Background Network">
         </div>
 
@@ -107,7 +152,7 @@
                         <span class="text-blue-500">Solutions</span>
                     </h1>
                     <p class="text-lg text-slate-300 mb-8 leading-relaxed max-w-lg mx-auto lg:mx-0">
-                        <span class="font-bold text-white">PT. Semangat Pagi Diginet</span> menghadirkan pengalaman internet super cepat, stabil, dan tanpa batasan kuota untuk mendukung aktivitas digital Anda.
+                        <span class="font-bold text-white">PT. Semangat Pagi Diginet</span> menghadirkan pengalaman internet super cepat, stabil, dan tanpa batasan kuota.
                     </p>
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                         <a href="#pricing" class="px-8 py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/30 transition transform hover:-translate-y-1">
@@ -126,12 +171,12 @@
                         <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000"></div>
                         <div class="relative bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-0 transition duration-500">
                             <div class="flex items-center gap-4 mb-4">
-                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg shadow-green-500/50">
                                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 </div>
                                 <div>
                                     <h3 class="text-white font-bold">Status Koneksi</h3>
-                                    <p class="text-green-400 text-sm">Terhubung • 100 Mbps</p>
+                                    <p class="text-green-400 text-sm font-semibold">Terhubung • 100 Mbps</p>
                                 </div>
                             </div>
                             <div class="space-y-3">
@@ -150,8 +195,8 @@
     <section id="about" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">Kenapa Memilih <span class="gradient-text">SPDLINK?</span></h2>
-                <p class="text-slate-500 max-w-2xl mx-auto">Kami berkomitmen memberikan layanan terbaik dengan infrastruktur modern untuk kenyamanan digital Anda.</p>
+                <h2 class="text-3xl font-bold text-slate-900 mb-4">Kenapa Memilih <span class="text-blue-600">SPDLINK?</span></h2>
+                <p class="text-slate-500 max-w-2xl mx-auto">Kami berkomitmen memberikan layanan terbaik dengan infrastruktur modern.</p>
             </div>
 
             <div class="grid md:grid-cols-3 gap-8">
@@ -160,27 +205,21 @@
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-slate-900 mb-3">Kecepatan Tinggi</h3>
-                    <p class="text-slate-500 leading-relaxed">
-                        Jaringan Fiber Optic 100% menjamin kecepatan download dan upload simetris tanpa lag.
-                    </p>
+                    <p class="text-slate-500 leading-relaxed">Jaringan Fiber Optic 100% menjamin kecepatan download dan upload simetris.</p>
                 </div>
                 <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition group">
                     <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-6 group-hover:scale-110 transition duration-300">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-slate-900 mb-3">Support 24/7</h3>
-                    <p class="text-slate-500 leading-relaxed">
-                        Tim teknis kami siap membantu kapanpun Anda mengalami kendala, siang maupun malam.
-                    </p>
+                    <p class="text-slate-500 leading-relaxed">Tim teknis kami siap membantu kapanpun Anda mengalami kendala.</p>
                 </div>
                 <div class="p-8 rounded-2xl bg-slate-50 border border-slate-100 hover:shadow-lg transition group">
                     <div class="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center text-green-600 mb-6 group-hover:scale-110 transition duration-300">
                         <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     </div>
                     <h3 class="text-xl font-bold text-slate-900 mb-3">Unlimited Quota</h3>
-                    <p class="text-slate-500 leading-relaxed">
-                        Bebas akses internet sepuasnya tanpa batasan FUP (Fair Usage Policy). Streaming non-stop!
-                    </p>
+                    <p class="text-slate-500 leading-relaxed">Bebas akses internet sepuasnya tanpa batasan FUP (Fair Usage Policy).</p>
                 </div>
             </div>
         </div>
@@ -196,7 +235,7 @@
 
             <div class="grid md:grid-cols-3 gap-8">
                 {{-- Paket 1 --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition duration-300 relative overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition duration-300">
                     <h3 class="text-lg font-bold text-slate-900 mb-2">Paket Rumahan</h3>
                     <div class="flex items-baseline gap-1 mb-6">
                         <span class="text-4xl font-extrabold text-slate-900">150rb</span>
@@ -210,10 +249,6 @@
                         <li class="flex items-center text-slate-600 text-sm">
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Unlimited Quota
-                        </li>
-                        <li class="flex items-center text-slate-600 text-sm">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Ideal untuk 2-3 Perangkat
                         </li>
                     </ul>
                     <a href="https://wa.me/628123456789?text=Halo%20SPD-Link,%20saya%20mau%20pasang%20Paket%20Rumahan" class="block w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-900 font-bold text-center rounded-xl transition">
@@ -238,18 +273,14 @@
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Unlimited Quota
                         </li>
-                        <li class="flex items-center text-slate-600 text-sm">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Ideal untuk 4-6 Perangkat
-                        </li>
                     </ul>
-                    <a href="https://wa.me/628123456789?text=Halo%20SPD-Link,%20saya%20mau%20pasang%20Paket%20Gamer" class="block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-center rounded-xl shadow-lg shadow-blue-500/30 transition">
+                    <a href="https://wa.me/628123456789?text=Halo%20SPD-Link,%20saya%20mau%20pasang%20Paket%20Gamer" class="block w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold text-center rounded-xl shadow-lg transition">
                         Pilih Paket
                     </a>
                 </div>
 
                 {{-- Paket 3 --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition duration-300 relative overflow-hidden">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 hover:border-blue-500 hover:shadow-xl hover:shadow-blue-500/10 transition duration-300">
                     <h3 class="text-lg font-bold text-slate-900 mb-2">Paket Bisnis</h3>
                     <div class="flex items-baseline gap-1 mb-6">
                         <span class="text-4xl font-extrabold text-slate-900">450rb</span>
@@ -259,10 +290,6 @@
                         <li class="flex items-center text-slate-600 text-sm">
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                             Up to <strong>50 Mbps</strong>
-                        </li>
-                        <li class="flex items-center text-slate-600 text-sm">
-                            <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            Unlimited Quota
                         </li>
                         <li class="flex items-center text-slate-600 text-sm">
                             <svg class="w-5 h-5 text-green-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -277,81 +304,6 @@
         </div>
     </section>
 
-    {{-- TESTIMONIALS SECTION (BARU) --}}
-    <section id="testimonials" class="py-20 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-slate-900 mb-4">Apa Kata Mereka?</h2>
-                <p class="text-slate-500 max-w-2xl mx-auto">Kepuasan pelanggan adalah prioritas utama kami. Berikut pengalaman mereka menggunakan SPDLINK.</p>
-            </div>
-
-            <div class="grid md:grid-cols-3 gap-8">
-                {{-- Testimonial 1 --}}
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition duration-300">
-                    <div class="flex items-center mb-4">
-                        <div class="flex text-yellow-400">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        </div>
-                    </div>
-                    <p class="text-slate-600 mb-6 italic">"Awalnya ragu pasang baru, ternyata koneksinya ngebut banget! Buat WFH zoom meeting lancar jaya tanpa putus-putus. Recommended!"</p>
-                    <div class="flex items-center gap-3">
-                        <img src="https://ui-avatars.com/api/?name=Andi+Pratama&background=2563EB&color=fff" class="w-10 h-10 rounded-full" alt="User">
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-sm">Andi Pratama</h4>
-                            <p class="text-xs text-slate-500">Karyawan Swasta</p>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Testimonial 2 --}}
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition duration-300">
-                    <div class="flex items-center mb-4">
-                        <div class="flex text-yellow-400">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        </div>
-                    </div>
-                    <p class="text-slate-600 mb-6 italic">"Paling suka sama paket Gamernya! Ping stabil, nggak pernah RTO pas lagi war. Supportnya juga gercep kalau ada gangguan."</p>
-                    <div class="flex items-center gap-3">
-                        <img src="https://ui-avatars.com/api/?name=Dimas+R&background=4F46E5&color=fff" class="w-10 h-10 rounded-full" alt="User">
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-sm">Dimas Ramadhan</h4>
-                            <p class="text-xs text-slate-500">Mahasiswa</p>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- Testimonial 3 --}}
-                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 hover:shadow-lg transition duration-300">
-                    <div class="flex items-center mb-4">
-                        <div class="flex text-yellow-400">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
-                        </div>
-                    </div>
-                    <p class="text-slate-600 mb-6 italic">"SPDLINK solusi banget buat usaha cafe saya. Pengunjung betah karena wifi kenceng, saya juga happy karena harganya terjangkau."</p>
-                    <div class="flex items-center gap-3">
-                        <img src="https://ui-avatars.com/api/?name=Siti+N&background=10B981&color=fff" class="w-10 h-10 rounded-full" alt="User">
-                        <div>
-                            <h4 class="font-bold text-slate-900 text-sm">Siti Nurhaliza</h4>
-                            <p class="text-xs text-slate-500">Pemilik Cafe</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
     {{-- COVERAGE CHECK SECTION --}}
     <section id="coverage" class="py-20 bg-blue-600 relative overflow-hidden">
         {{-- Background Pattern --}}
@@ -359,7 +311,7 @@
 
         <div class="max-w-4xl mx-auto px-4 relative z-10 text-center">
             <h2 class="text-3xl font-bold text-white mb-6">Cek Ketersediaan Jaringan</h2>
-            <p class="text-blue-100 mb-8">Masukkan nama area atau kelurahan Anda untuk mengecek apakah layanan kami sudah tersedia di lokasi Anda.</p>
+            <p class="text-blue-100 mb-8">Masukkan nama area atau kelurahan Anda untuk mengecek.</p>
 
             <form action="{{ route('customers.check-coverage') }}" method="POST" class="bg-white p-2 rounded-2xl shadow-2xl flex flex-col sm:flex-row gap-2">
                 @csrf
@@ -372,7 +324,6 @@
                 </button>
             </form>
             
-            {{-- Pesan Flash --}}
             @if(session('status'))
                 <div class="mt-6 p-4 rounded-xl bg-white/20 backdrop-blur-md border border-white/30 text-white font-medium animate-fade-in-up">
                     {{ session('status') }}
@@ -387,9 +338,7 @@
             <div class="grid md:grid-cols-4 gap-8 mb-8">
                 <div class="col-span-1 md:col-span-2">
                     <div class="flex items-center gap-2 mb-4">
-                        {{-- Logo Footer --}}
-                        <img src="{{ asset('Logo-SPDLINK.png') }}" alt="Logo SPDLINK" class="h-10 w-auto rounded-md bg-white p-0.5">
-                        {{-- Nama Perusahaan Resmi di Footer --}}
+                        <img src="{{ asset('Logo-SPDLINK.png') }}" alt="Logo SPDLINK" class="h-10 w-auto rounded-md bg-white p-0.5" onerror="this.style.display='none'">
                         <span class="text-xl font-bold text-white">PT. Semangat Pagi Diginet</span>
                     </div>
                     <p class="text-sm leading-relaxed max-w-xs">
@@ -412,44 +361,13 @@
                             <svg class="w-5 h-5 text-blue-500 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                             <span>Jl. Raya Internet No. 123, Kota Digital, Indonesia</span>
                         </li>
-                        <li class="flex items-center gap-2">
-                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
-                            <span>+62 812-3456-7890</span>
-                        </li>
                     </ul>
                 </div>
             </div>
             <div class="border-t border-slate-800 pt-8 text-center text-sm">
-                {{-- Nama Perusahaan di Copyright --}}
                 &copy; {{ date('Y') }} PT. Semangat Pagi Diginet. All rights reserved.
             </div>
         </div>
     </footer>
-
-    <style>
-        /* Animasi Tambahan */
-        @keyframes blob {
-            0% { transform: translate(0px, 0px) scale(1); }
-            33% { transform: translate(30px, -50px) scale(1.1); }
-            66% { transform: translate(-20px, 20px) scale(0.9); }
-            100% { transform: translate(0px, 0px) scale(1); }
-        }
-        .animate-blob {
-            animation: blob 7s infinite;
-        }
-        .animation-delay-2000 {
-            animation-delay: 2s;
-        }
-        .animation-delay-4000 {
-            animation-delay: 4s;
-        }
-        .animate-fade-in-up {
-            animation: fadeInUp 0.5s ease-out;
-        }
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-    </style>
 </body>
 </html>

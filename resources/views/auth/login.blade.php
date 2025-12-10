@@ -3,291 +3,110 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login | {{ config('app.name') }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<style>
+    /* Reset & Base */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent; /* Hilangkan highlight biru saat tap di mobile */
+    }
 
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background-color: #f9fafb;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
+   /* Tambahkan selector html */
+html {
+    height: 100%;
+}
 
-        .container {
-            width: 100%;
-            max-width: 448px;
-        }
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #f9fafb;
+    
+    /* GANTI INI: Pastikan height 100% dulu, baru min-height */
+    height: 100%; 
+    min-height: 100vh;
+    
+    /* Matikan Flexbox dulu untuk testing */
+    /* display: flex; */ 
+    /* align-items: center; */
+    /* justify-content: center; */
+    
+    padding: 1rem;
+    overflow-y: auto; /* Pastikan bisa discroll */
+}
 
-        .logo-section {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
+/* Tambahkan margin auto di container supaya tetap tengah walau tanpa flex body */
+.container {
+    width: 100%;
+    max-width: 448px;
+    margin: 2rem auto; /* Ini trik centering klasik */
+}
 
-        /* Style Baru untuk Logo Image */
-        .logo-img {
-            height: 80px; /* Tinggi logo disesuaikan */
-            width: auto;  /* Lebar menyesuaikan proporsi */
-            margin-bottom: 1rem;
-            object-fit: contain;
-        }
+    /* ... CSS Logo, h1, subtitle sama seperti sebelumnya ... */
+    .logo-section { text-align: center; margin-bottom: 2rem; }
+    .logo-img { height: 80px; width: auto; margin-bottom: 1rem; object-fit: contain; }
+    h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 0.25rem; }
+    .subtitle { color: #6b7280; font-size: 0.875rem; }
+    .card { background: white; border-radius: 1rem; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); border: 1px solid #e5e7eb; padding: 2rem; }
+    .card-header { margin-bottom: 1.5rem; }
+    .card-header h2 { font-size: 1.25rem; font-weight: 600; color: #111827; margin-bottom: 0.25rem; }
+    .card-header p { color: #6b7280; font-size: 0.875rem; }
+    .error-message { background-color: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.875rem; }
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; color: #374151; font-weight: 500; margin-bottom: 0.5rem; font-size: 0.875rem; }
 
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 0.25rem;
-        }
+    /* FIX INPUT ZOOM IPHONE */
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        border: 1px solid #d1d5db;
+        padding: 0.625rem 1rem;
+        border-radius: 0.5rem;
+        
+        /* PENTING: Font size 16px mencegah zoom otomatis di iOS */
+        font-size: 16px; 
+        
+        color: #111827;
+        transition: all 0.2s;
+        /* Menghilangkan shadow default iOS pada input */
+        -webkit-appearance: none; 
+        appearance: none;
+    }
 
-        .subtitle {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-
-        .card {
-            background: white;
-            border-radius: 1rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e5e7eb;
-            padding: 2rem;
-        }
-
-        .card-header {
-            margin-bottom: 1.5rem;
-        }
-
-        .card-header h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 0.25rem;
-        }
-
-        .card-header p {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-
-        .error-message {
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            padding: 0.75rem 1rem;
-            border-radius: 0.5rem;
-            margin-bottom: 1.5rem;
-            font-size: 0.875rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-
-        label {
-            display: block;
-            color: #374151;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            width: 100%;
-            border: 1px solid #d1d5db;
-            padding: 0.625rem 1rem;
-            border-radius: 0.5rem;
-            font-size: 0.875rem;
-            color: #111827;
-            transition: all 0.2s;
-        }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #6366f1;
-            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-        }
-
-        input::placeholder {
-            color: #9ca3af;
-        }
-
-        .password-wrapper {
-            position: relative;
-        }
-
-        .password-wrapper input {
-            padding-right: 2.75rem;
-        }
-
-        .toggle-password {
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            padding: 0;
-            transition: color 0.2s;
-        }
-
-        .toggle-password:hover {
-            color: #4b5563;
-        }
-
-        .toggle-password svg {
-            width: 20px;
-            height: 20px;
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .hidden {
-            display: none;
-        }
-
-        .remember-forgot {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.875rem;
-            margin-bottom: 1.25rem;
-        }
-
-        .remember-label {
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            color: #4b5563;
-        }
-
-        input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-            margin-right: 0.5rem;
-            cursor: pointer;
-            accent-color: #4f46e5;
-        }
-
-        .forgot-link {
-            color: #4f46e5;
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .forgot-link:hover {
-            color: #4338ca;
-        }
-
-        .btn-primary {
-            width: 100%;
-            background-color: #4f46e5;
-            color: white;
-            font-weight: 500;
-            padding: 0.625rem 1rem;
-            border-radius: 0.5rem;
-            border: none;
-            cursor: pointer;
-            font-size: 0.875rem;
-            transition: background-color 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        .btn-primary:hover {
-            background-color: #4338ca;
-        }
-
-        .divider {
-            position: relative;
-            margin: 1.5rem 0;
-        }
-
-        .divider::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background-color: #e5e7eb;
-        }
-
-        .divider span {
-            position: relative;
-            display: inline-block;
-            background: white;
-            padding: 0 0.75rem;
-            color: #6b7280;
-            font-size: 0.75rem;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .contact-buttons {
-            display: flex;
-            gap: 0.75rem;
-        }
-
-        .btn-contact {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.625rem 1rem;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            color: #374151;
-            text-decoration: none;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: background-color 0.2s;
-        }
-
-        .btn-contact:hover {
-            background-color: #f9fafb;
-        }
-
-        .btn-contact svg {
-            width: 20px;
-            height: 20px;
-            margin-right: 0.5rem;
-        }
-
-        .btn-contact.whatsapp svg {
-            color: #25d366;
-            fill: currentColor;
-        }
-
-        .btn-contact.email svg {
-            stroke: currentColor;
-            fill: none;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 1.5rem;
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-    </style>
+    /* ... sisa CSS sama, pastikan copy bagian lainnya juga ... */
+    input[type="text"]:focus, input[type="password"]:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1); }
+    input::placeholder { color: #9ca3af; }
+    .password-wrapper { position: relative; }
+    .password-wrapper input { padding-right: 2.75rem; }
+    
+    /* Tombol Eye */
+    .toggle-password {
+        position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%);
+        background: none; border: none; color: #9ca3af; cursor: pointer; padding: 0;
+        display: flex; align-items: center; /* Fix alignment */
+    }
+    
+    /* ... Lanjutkan sisa CSS (btn-primary, divider, dll) dari kode aslimu ... */
+    
+    /* Sisa CSS lainnya sama persis, tidak perlu diubah kecuali font-size input */
+    .hidden { display: none; }
+    .remember-forgot { display: flex; align-items: center; justify-content: space-between; font-size: 0.875rem; margin-bottom: 1.25rem; }
+    .remember-label { display: flex; align-items: center; cursor: pointer; color: #4b5563; }
+    input[type="checkbox"] { width: 1rem; height: 1rem; margin-right: 0.5rem; cursor: pointer; accent-color: #4f46e5; }
+    .forgot-link { color: #4f46e5; text-decoration: none; font-weight: 500; }
+    .btn-primary { width: 100%; background-color: #4f46e5; color: white; font-weight: 500; padding: 0.625rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer; font-size: 0.875rem; transition: background-color 0.2s; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); }
+    .divider { position: relative; margin: 1.5rem 0; }
+    .divider::before { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 1px; background-color: #e5e7eb; }
+    .divider span { position: relative; display: inline-block; background: white; padding: 0 0.75rem; color: #6b7280; font-size: 0.75rem; left: 50%; transform: translateX(-50%); }
+    .contact-buttons { display: flex; gap: 0.75rem; }
+    .btn-contact { flex: 1; display: flex; align-items: center; justify-content: center; padding: 0.625rem 1rem; border: 1px solid #d1d5db; border-radius: 0.5rem; color: #374151; text-decoration: none; font-size: 0.875rem; font-weight: 500; }
+    .btn-contact svg { width: 20px; height: 20px; margin-right: 0.5rem; }
+    .btn-contact.whatsapp svg { color: #25d366; fill: currentColor; }
+    .btn-contact.email svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .footer { text-align: center; margin-top: 1.5rem; color: #6b7280; font-size: 0.875rem; }
+</style>
 </head>
 
 <body>

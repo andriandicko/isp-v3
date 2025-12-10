@@ -20,5 +20,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        // Paksa semua link aset (asset()) menggunakan HTTPS jika di Production
+        if($this->app->environment('production') || env('APP_ENV') === 'production') {
+            URL::forceScheme('https');
+        }
+        
+        // Atau jika ingin selalu HTTPS tanpa peduli environment (aman untuk aaPanel):
+        // URL::forceScheme('https'); 
     }
 }

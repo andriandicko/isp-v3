@@ -1,11 +1,12 @@
 <aside 
-    class="fixed inset-y-0 left-0 z-[100] w-64 bg-white border-r border-slate-200 shadow-2xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col h-screen"
+    class="fixed inset-y-0 left-0 z-[100] w-64 bg-white border-r border-slate-200 shadow-2xl transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0 flex flex-col h-screen h-[100dvh]"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     @click.away="sidebarOpen = false"
     @keydown.escape.window="sidebarOpen = false"
     x-data="{ logoutModalOpen: false }"
 >
     
+    {{-- HEADER (LOGO) --}}
     <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100 bg-white shrink-0">
         <div class="flex items-center gap-3">
             <div class="flex-shrink-0">
@@ -27,6 +28,7 @@
         </button>
     </div>
 
+    {{-- USER INFO --}}
     <div class="p-4 border-b border-slate-100 bg-slate-50/50 shrink-0">
         <div class="flex items-center gap-3">
             <div class="flex-shrink-0">
@@ -41,7 +43,9 @@
         </div>
     </div>
 
-    <nav class="flex-1 px-3 lg:px-4 py-4 lg:py-6 space-y-3 overflow-y-auto custom-scrollbar pb-24">
+    {{-- NAVIGATION (Scrollable Area) --}}
+    {{-- FIX: Hapus pb-24 yang berlebihan, ganti jadi overflow yang benar --}}
+    <nav class="flex-1 px-3 lg:px-4 py-4 space-y-3 overflow-y-auto custom-scrollbar">
 
         {{-- DASHBOARD --}}
         @can('dashboard.index')
@@ -58,7 +62,6 @@
         @endcan
 
         {{-- ABSENSI GROUP --}}
-        {{-- Muncul jika punya salah satu permission di bawah ini --}}
         @canany(['attendance.index', 'leave.index', 'shifts.index', 'user-shifts.index', 'offices.index'])
         <div class="space-y-1" x-data="{ open: {{ request()->routeIs('attendance.*') || request()->routeIs('leave.*') || request()->routeIs('shifts.*') || request()->routeIs('user-shifts.*') || request()->routeIs('offices.*') ? 'true' : 'false' }} }">
             <button @click="open = !open" class="w-full group flex items-center justify-between px-3 lg:px-4 py-2.5 lg:py-3 text-sm font-semibold rounded-xl transition-all duration-300 {{ request()->routeIs('attendance.*') || request()->routeIs('leave.*') ? 'bg-purple-50 text-purple-700' : 'text-slate-700 hover:bg-white hover:shadow-md' }}">
@@ -223,7 +226,11 @@
 
     </nav>
 
-    <div class="p-4 border-t border-slate-100 bg-white shrink-0" x-data="{ logoutModalOpen: false }">
+    {{-- FOOTER (LOGOUT) - FIXED untuk iPhone --}}
+    {{-- Tambahkan pb-8 atau padding safe-area untuk mengangkat tombol ke atas home bar --}}
+    {{-- FOOTER (LOGOUT) - FIXED V2 untuk iPhone --}}
+    {{-- UPDATE: Mengganti pb-8 menjadi pb-24 agar tombol naik jauh ke atas --}}
+    <div class="p-4 pb-24 lg:pb-4 border-t border-slate-100 bg-white shrink-0" x-data="{ logoutModalOpen: false }">
         
         <button 
             type="button" 
@@ -279,6 +286,8 @@
                 </div>
             </div>
         </div>
-    </template>
+        </template>
+
+    </div>
 
 </aside>
