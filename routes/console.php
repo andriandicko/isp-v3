@@ -31,6 +31,6 @@ Schedule::command('billing:check-overdue')
 // 2. ABSENSI: Auto set 'Alpha' jika tidak absen (Setiap jam 23:00 malam)
 // (Pastikan command 'attendance:auto-absent' sudah ada di app/Console/Commands)
 Schedule::command('attendance:auto-absent')
-    ->dailyAt('23:00') 
+    ->dailyAt('01:00') 
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/scheduler.log'));
